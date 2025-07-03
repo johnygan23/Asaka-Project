@@ -1,33 +1,52 @@
 import { NavLink } from 'react-router-dom';
+import HomeIcon from '../assets/home-smile-angle-svgrepo-com.svg';
+import InboxIcon from '../assets/notification-svgrepo-com.svg';
+import ProjectsIcon from '../assets/folders-svgrepo-com.svg';
+import TeamIcon from '../assets/team-svgrepo-com.svg';
+import TasksIcon from '../assets/to-do-svgrepo-com.svg';
+import LogoutIcon from '../assets/logout-svgrepo-com.svg';
 
 const Sidebar = ({ onLogout }) => {
+    // Function to get NavLink classes with active state
+    const getLinkClasses = ({ isActive }) => {
+        return `flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-colors duration-200 ${isActive
+            ? 'bg-cyan-50 text-cyan-700'
+            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+            }`;
+    };
+
     return (
-        <div className="flex-col bg-white shadow-lg transition-all duration-300 overflow-hidden w-64">
+        <div className="h-full flex flex-col">
             <nav className="flex-1 p-4 flex flex-col">
                 <ul className="space-y-1 flex-1">
                     <li>
-                        <NavLink to="/" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50">
-                            <span className="font-medium truncate">Home</span>
+                        <NavLink to="/home" className={getLinkClasses}>
+                            <img src={HomeIcon} alt="Home" className="w-5 h-5 flex-shrink-0" />
+                            <span className="truncate">Home</span>
                         </NavLink>
                     </li>
                     <li>
-                        <NavLink to="/tasks" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50">
-                            <span className="font-medium truncate">My Tasks</span>
+                        <NavLink to="/tasks" className={getLinkClasses}>
+                            <img src={TasksIcon} alt="Tasks" className="w-5 h-5 flex-shrink-0" />
+                            <span className="truncate">My Tasks</span>
                         </NavLink>
                     </li>
                     <li>
-                        <NavLink to="/inbox" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50">
-                            <span className="font-medium truncate">Inbox</span>
+                        <NavLink to="/inbox" className={getLinkClasses}>
+                            <img src={InboxIcon} alt="Inbox" className="w-5 h-5 flex-shrink-0" />
+                            <span className="truncate">Inbox</span>
                         </NavLink>
                     </li>
                     <li>
-                        <NavLink to="/projects" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50">
-                            <span className="font-medium truncate">Projects</span>
+                        <NavLink to="/projects" className={getLinkClasses}>
+                            <img src={ProjectsIcon} alt="Projects" className="w-5 h-5 flex-shrink-0" />
+                            <span className="truncate">Projects</span>
                         </NavLink>
                     </li>
                     <li>
-                        <NavLink to="/teams" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50">
-                            <span className="font-medium truncate">Team</span>
+                        <NavLink to="/teams" className={getLinkClasses}>
+                            <img src={TeamIcon} alt="Team" className="w-5 h-5 flex-shrink-0" />
+                            <span className="truncate">Team</span>
                         </NavLink>
                     </li>
                 </ul>
@@ -35,9 +54,10 @@ const Sidebar = ({ onLogout }) => {
                 <div className="mt-4 pt-4 border-t border-gray-200">
                     <button
                         onClick={onLogout}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 w-full text-left"
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-red-50 hover:text-red-700 w-full text-left font-medium transition-colors duration-200"
                     >
-                        <span className="font-medium">Logout</span>
+                        <img src={LogoutIcon} alt="Logout" className="w-5 h-5 flex-shrink-0" />
+                        <span className="truncate">Logout</span>
                     </button>
                 </div>
             </nav>
