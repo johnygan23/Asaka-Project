@@ -1,9 +1,6 @@
-import Header from './Header';
-
-const Dashboard = ({ onToggleSidebar }) => {
+const Dashboard = () => {
     return (
         <main className="flex-1 flex flex-col">
-            <Header onToggleSidebar={onToggleSidebar} />
             <div className="flex-1 p-6">
                 <div className="max-w-7xl mx-auto">
                     <div className="mb-8">

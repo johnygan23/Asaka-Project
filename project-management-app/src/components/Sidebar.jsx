@@ -1,16 +1,8 @@
 import { NavLink } from 'react-router-dom';
-import AsanaLogo from '../assets/asana-logo.svg';
 
-const Sidebar = ({ onLogout, isCollapsed }) => {
+const Sidebar = ({ onLogout }) => {
     return (
-        <div className={`flex-col bg-white shadow-lg transition-all duration-300 overflow-hidden ${isCollapsed ? 'w-0' : 'w-64'}`}>
-            <div className="p-4 border-b border-gray-200 flex items-center">
-                <div className="flex items-center gap-3">
-                    <img src={AsanaLogo} alt="Asaka Logo" className="w-8 h-8" />
-                    <h2 className="text-xl font-bold text-gray-800 tracking-wide">Asaka</h2>
-                </div>
-            </div>
-
+        <div className="flex-col bg-white shadow-lg transition-all duration-300 overflow-hidden w-64">
             <nav className="flex-1 p-4 flex flex-col">
                 <ul className="space-y-1 flex-1">
                     <li>
