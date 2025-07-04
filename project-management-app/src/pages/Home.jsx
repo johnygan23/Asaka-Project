@@ -74,8 +74,8 @@ const Home = ({ onLogout }) => {
         ));
     };
 
-    const projectCompleted = projects.filter(p => p.status === 'Completed').length;
 
+  const projectCompleted = projects.filter(p => p.status === 'Completed').length;
     return (
         <Layout onLogout={onLogout} projects={projects}>
             <main className="flex-1 flex flex-col bg-gray-50 min-h-screen">
