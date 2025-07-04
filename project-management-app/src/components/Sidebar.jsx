@@ -38,20 +38,28 @@ const Sidebar = ({ onLogout, projects = [] }) => {
                         </NavLink>
                     </li>
                     <li>
-                        <NavLink to="/projects" className={getLinkClasses}>
+                        <NavLink to="/projects" end className={getLinkClasses}>
                             <img src={ProjectsIcon} alt="Projects" className="w-5 h-5 flex-shrink-0" />
                             <span className="truncate">Projects</span>
                         </NavLink>
                         {/* Project list */}
                         {projects.length > 0 && (
-                            <ul className="mt-0.5 pl-2">
+                            <ul className="mt-0.5 pl-2 space-y-0.5">
                                 {projects.map((project) => (
-                                    <li key={project.id} className="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-gray-50 cursor-pointer text-black-600">
-                                        <span
-                                            className="w-4 h-4 rounded-sm flex-shrink-0"
-                                            style={{ backgroundColor: project.color }}
-                                        />
-                                        <span className="truncate text-sm">{project.name}</span>
+                                    <li key={project.id}>
+                                        <NavLink
+                                            to={`/projects/${project.id}`}
+                                            className={({ isActive }) =>
+                                                `flex items-center gap-2 px-2 py-2 rounded-lg text-sm transition-colors duration-200 ${isActive
+                                                    ? 'bg-cyan-50 text-cyan-700'
+                                                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
+                                        >
+                                            <span
+                                                className={`w-4 h-4 rounded-sm flex-shrink-0 ${project.color.startsWith('#') ? '' : project.color}`}
+                                                style={project.color.startsWith('#') ? { backgroundColor: project.color } : {}}
+                                            />
+                                            <span className="truncate">{project.name}</span>
+                                        </NavLink>
                                     </li>
                                 ))}
                             </ul>

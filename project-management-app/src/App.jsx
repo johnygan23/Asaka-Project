@@ -6,6 +6,7 @@ import Tasks from './pages/Tasks';
 import Login from './pages/Login';
 import Home from './pages/Home';
 import Signup from './pages/Signup';
+import ProjectDetails from './pages/ProjectDetails';
 import './App.css';
 
 function App() {
@@ -22,6 +23,10 @@ function App() {
 
   const handleAddProject = (newproject) => {
     setProjects([...projects, { ...newproject, id: Date.now() }]);
+  };
+
+  const handleUpdateProject = (projectId, updates) => {
+    setProjects(projects.map(p => (p.id === projectId ? { ...p, ...updates } : p)));
   };
 
   // Protected Route Wrapper Component
@@ -76,6 +81,17 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* Project Details */}
+          <Route
+            path="/projects/:projectId"
+            element={
+              <ProtectedRoute>
+                <ProjectDetails onLogout={handleLogout} projects={projects} onUpdateProject={handleUpdateProject} />
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="/inbox"
             element={
