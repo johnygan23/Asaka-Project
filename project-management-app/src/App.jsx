@@ -1,16 +1,11 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { initialProjects } from './data/project';
 import { useState } from 'react';
-<<<<<<< Updated upstream
 import Projects from './pages/Projects';
-import Login from './pages/Login';
-import Home from './pages/Home';
 import Tasks from './pages/Tasks';
-=======
 import Login from './pages/Login';
 import Home from './pages/Home';
 import Signup from './pages/Signup';
->>>>>>> Stashed changes
 import './App.css';
 
 function App() {
