@@ -1,30 +1,20 @@
 // src/components/CreateProjectModal.jsx
 import { useState } from 'react';
+import { projectColors } from '../data/colors';
 
-const CreateProjectModal = ({ onClose, onCreate }) => {
+const CreateProjectModal = ({ onClose, onCreate, projectsCount = 0 }) => {
     const [projectName, setProjectName] = useState('');
-
-    // Array of predefined colors for projects
-    const projectColors = [
-        '#22d3ee', // cyan
-        '#a78bfa', // purple
-        '#f87171', // red
-        '#34d399', // green
-        '#fbbf24', // yellow
-        '#60a5fa', // blue
-        '#f472b6', // pink
-        '#fb923c', // orange
-    ];
 
     const handleSubmit = (e) => {
         e.preventDefault();
         if (projectName.trim()) {
-            // Select a random color for the new project
-            const randomColor = projectColors[Math.floor(Math.random() * projectColors.length)];
+            // Select the next color in order based on existing projects length
+            const colorIndex = projectsCount % projectColors.length;
+            const selectedColor = projectColors[colorIndex];
 
             onCreate({
                 name: projectName,
-                color: randomColor
+                color: selectedColor
             });
         }
     };
@@ -61,7 +51,7 @@ const CreateProjectModal = ({ onClose, onCreate }) => {
                             onChange={(e) => setProjectName(e.target.value)}
                             placeholder="my project"
                             className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors duration-200"
-                            autoFocus
+                            required
                         />
                     </div>
 
