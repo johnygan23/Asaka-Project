@@ -1,6 +1,38 @@
+// src/components/Header.jsx
+import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AsanaLogo from '../assets/asana-logo.svg';
+import ProjectsIcon from '../assets/folders-svgrepo-com.svg';
+import TasksIcon from '../assets/to-do-svgrepo-com.svg';
+import TeamIcon from '../assets/team-svgrepo-com.svg';
+import MessageIcon from '../assets/message-square-svgrepo-com.svg';
+import InviteIcon from '../assets/add-user-svgrepo-com.svg';
 
 const Header = ({ onToggleSidebar }) => {
+    const [showCreateDropdown, setShowCreateDropdown] = useState(false);
+    const dropdownRef = useRef(null);
+    const navigate = useNavigate();
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setShowCreateDropdown(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
+    const handleCreateProject = () => {
+        setShowCreateDropdown(false);
+        navigate('/projects');
+        window.dispatchEvent(new CustomEvent('openCreateProject'));
+    };
+
     return (
         <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center">
             {/* Left Section - Logo, Asaka, Hamburger Menu, Create Button */}
@@ -21,15 +53,67 @@ const Header = ({ onToggleSidebar }) => {
                     </svg>
                 </button>
 
-                {/* Create Button */}
-                <button className="bg-white hover:bg-gray-100 text-gray-700 px-2 py-1.5 rounded-full flex items-center gap-3 transition-colors duration-200 font-medium text-sm border border-gray-200">
-                    <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-                        </svg>
-                    </div>
-                    Create
-                </button>
+                {/* Create Button with Dropdown */}
+                <div className="relative" ref={dropdownRef}>
+                    <button
+                        onClick={() => setShowCreateDropdown(!showCreateDropdown)}
+                        className="bg-white hover:bg-gray-100 text-gray-700 px-2 py-1.5 rounded-full flex items-center gap-3 transition-colors duration-200 font-medium text-sm border border-gray-200"
+                    >
+                        <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
+                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                            </svg>
+                        </div>
+                        Create
+                    </button>
+
+                    {/* Dropdown Menu */}
+                    {showCreateDropdown && (
+                        <div className="absolute top-full left-0 mt-2 w-42 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                            <button
+                                onClick={() => setShowCreateDropdown(false)}
+                                className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-3"
+                            >
+                                <img src={TasksIcon} alt="Tasks" className="w-5 h-5 flex-shrink-0" />
+                                <span className="text-gray-700">Task</span>
+                            </button>
+
+                            <button
+                                onClick={handleCreateProject}
+                                className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-3"
+                            >
+                                <img src={ProjectsIcon} alt="Projects" className="w-5 h-5 flex-shrink-0" />
+                                <span className="text-gray-700">Project</span>
+                            </button>
+
+                            <button
+                                onClick={() => setShowCreateDropdown(false)}
+                                className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-3"
+                            >
+                                <img src={MessageIcon} alt="Message" className="w-5 h-5 flex-shrink-0" />
+                                <span className="text-gray-700">Message</span>
+                            </button>
+
+                            <button
+                                onClick={() => setShowCreateDropdown(false)}
+                                className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-3"
+                            >
+                                <img src={TeamIcon} alt="Team" className="w-5 h-5 flex-shrink-0" />
+                                <span className="text-gray-700">Team</span>
+                            </button>
+
+                            <div className="border-t border-gray-200 my-2"></div>
+
+                            <button
+                                onClick={() => setShowCreateDropdown(false)}
+                                className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-3"
+                            >
+                                <img src={InviteIcon} alt="Invite" className="w-5 h-5 flex-shrink-0" />
+                                <span className="text-gray-700">Invite</span>
+                            </button>
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Search Bar */}
@@ -58,4 +142,4 @@ const Header = ({ onToggleSidebar }) => {
     );
 };
 
-export default Header; 
+export default Header;

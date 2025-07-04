@@ -1,8 +1,8 @@
 import Layout from '../components/Layout';
 
-const Home = ({ onLogout }) => {
+const Home = ({ onLogout, projects = [] }) => {
     return (
-        <Layout onLogout={onLogout}>
+        <Layout onLogout={onLogout} projects={projects}>
             {/* Page Header */}
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome to Dashboard</h1>

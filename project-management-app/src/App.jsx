@@ -1,13 +1,15 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { initialProjects } from './data/project';
 import { useState } from 'react';
+import Projects from './pages/Projects';
 import Login from './pages/Login';
 import Home from './pages/Home';
 import Tasks from './pages/Tasks';
-import Projects from './pages/Projects';
 import './App.css';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [projects, setProjects] = useState(initialProjects);
 
   const handleLogin = () => {
     setIsAuthenticated(true);
@@ -15,6 +17,10 @@ function App() {
 
   const handleLogout = () => {
     setIsAuthenticated(false);
+  };
+
+  const handleAddProject = (newproject) => {
+    setProjects([...projects, { ...newproject, id: Date.now() }]);
   };
 
   // Protected Route Wrapper Component
@@ -41,7 +47,7 @@ function App() {
             path="/home"
             element={
               <ProtectedRoute>
-                <Home onLogout={handleLogout} />
+                <Home onLogout={handleLogout} projects={projects} />
               </ProtectedRoute>
             }
           />
@@ -49,7 +55,7 @@ function App() {
             path="/tasks"
             element={
               <ProtectedRoute>
-                <Tasks onLogout={handleLogout} />
+                <Tasks onLogout={handleLogout} projects={projects} />
               </ProtectedRoute>
             }
           />
@@ -57,7 +63,11 @@ function App() {
             path="/projects"
             element={
               <ProtectedRoute>
-                <Projects onLogout={handleLogout} />
+                <Projects
+                  onLogout={handleLogout}
+                  projects={projects}
+                  onAddProject={handleAddProject}
+                />
               </ProtectedRoute>
             }
           />

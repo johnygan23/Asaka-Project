@@ -1,8 +1,8 @@
 import Layout from '../components/Layout';
 
-const Tasks = ({ onLogout }) => {
+const Tasks = ({ onLogout, projects = [] }) => {
     return (
-        <Layout onLogout={onLogout}>
+        <Layout onLogout={onLogout} projects={projects}>
             {/* Page Header */}
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">My Tasks</h1>

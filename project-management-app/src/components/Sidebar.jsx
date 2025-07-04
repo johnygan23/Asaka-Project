@@ -6,7 +6,7 @@ import TeamIcon from '../assets/team-svgrepo-com.svg';
 import TasksIcon from '../assets/to-do-svgrepo-com.svg';
 import LogoutIcon from '../assets/logout-svgrepo-com.svg';
 
-const Sidebar = ({ onLogout }) => {
+const Sidebar = ({ onLogout, projects = [] }) => {
     // Function to get NavLink classes with active state
     const getLinkClasses = ({ isActive }) => {
         return `flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-colors duration-200 ${isActive
@@ -42,6 +42,20 @@ const Sidebar = ({ onLogout }) => {
                             <img src={ProjectsIcon} alt="Projects" className="w-5 h-5 flex-shrink-0" />
                             <span className="truncate">Projects</span>
                         </NavLink>
+                        {/* Project list */}
+                        {projects.length > 0 && (
+                            <ul className="mt-0.5 pl-2">
+                                {projects.map((project) => (
+                                    <li key={project.id} className="flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-gray-50 cursor-pointer text-black-600">
+                                        <span
+                                            className="w-4 h-4 rounded-sm flex-shrink-0"
+                                            style={{ backgroundColor: project.color }}
+                                        />
+                                        <span className="truncate text-sm">{project.name}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                     </li>
                     <li>
                         <NavLink to="/teams" className={getLinkClasses}>
@@ -51,7 +65,7 @@ const Sidebar = ({ onLogout }) => {
                     </li>
                 </ul>
 
-                <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="mt-3 pt-4 border-t border-gray-200">
                     <button
                         onClick={onLogout}
                         className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-red-50 hover:text-red-700 w-full text-left font-medium transition-colors duration-200"
