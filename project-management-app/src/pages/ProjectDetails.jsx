@@ -4,6 +4,8 @@ import { projectColors } from '../data/colors';
 import Layout from '../components/Layout';
 import ProjectOverview from '../components/ProjectOverview';
 import ProjectBoard from '../components/ProjectBoard.jsx';
+import OverviewIcon from '../assets/overview-svgrepo-com.svg';
+import BoardIcon from '../assets/board-svgrepo-com.svg';
 
 const ProjectDetails = ({ onLogout, projects = [], onUpdateProject }) => {
     const { projectId } = useParams();
@@ -60,20 +62,22 @@ const ProjectDetails = ({ onLogout, projects = [], onUpdateProject }) => {
                     <nav className="-mb-px flex space-x-2">
                         <button
                             onClick={() => setActiveTab('overview')}
-                            className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'overview'
+                            className={`py-2 px-3 border-b-2 font-medium text-sm flex items-center gap-1 ${activeTab === 'overview'
                                 ? 'border-cyan-500 text-cyan-600'
                                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                 }`}
                         >
+                            <img src={OverviewIcon} alt="Overview" className="w-4 h-4" />
                             Overview
                         </button>
                         <button
                             onClick={() => setActiveTab('board')}
-                            className={`py-2 px-1 border-b-2 font-medium text-sm ${activeTab === 'board'
+                            className={`py-2 px-3 border-b-2 font-medium text-sm flex items-center gap-1 ${activeTab === 'board'
                                 ? 'border-cyan-500 text-cyan-600'
                                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                 }`}
                         >
+                            <img src={BoardIcon} alt="Board" className="w-4 h-4" />
                             Board
                         </button>
                         {/* Add more tabs as needed: List, Timeline, Calendar, etc. */}
