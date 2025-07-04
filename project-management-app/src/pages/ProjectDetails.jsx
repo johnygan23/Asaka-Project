@@ -86,7 +86,7 @@ const ProjectDetails = ({ onLogout, projects = [], onUpdateProject }) => {
             </div>
 
             {/* Tab Content */}
-            {activeTab === 'overview' && <ProjectOverview projectId={projectId} />}
+            {activeTab === 'overview' && currentProject && <ProjectOverview project={currentProject} />}
             {activeTab === 'board' && <ProjectBoard projectId={projectId} />}
         </Layout>
     );
