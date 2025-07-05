@@ -164,7 +164,7 @@ const Team = ({ onLogout, projects = [] }) => {
 
                         {/* Member Details */}
                         {selectedMember && (
-                            <div className="w-96 bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+                            <div className="w-96 h-full bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
                                 <div className="p-6 border-b border-gray-200">
                                     <div className="flex items-center justify-between">
                                         <h3 className="text-lg font-semibold text-gray-900">Member Details</h3>
@@ -226,21 +226,7 @@ const Team = ({ onLogout, projects = [] }) => {
                                             </div>
                                         </div>
 
-                                        <div>
-                                            <h5 className="text-sm font-medium text-gray-900 mb-3">Skills</h5>
-                                            <div className="flex flex-wrap gap-2">
-                                                {selectedMember.skills.map((skill, index) => (
-                                                    <span key={index} className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm">
-                                                        {skill}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        </div>
 
-                                        <div>
-                                            <h5 className="text-sm font-medium text-gray-900 mb-3">About</h5>
-                                            <p className="text-sm text-gray-700 leading-relaxed">{selectedMember.bio}</p>
-                                        </div>
 
                                         <div className="pt-4 border-t border-gray-200">
                                             <div className="flex gap-3">
