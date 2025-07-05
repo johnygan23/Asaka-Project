@@ -1,22 +1,36 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { initialProjects } from './data/project';
-import { useState } from 'react';
-import Projects from './pages/Projects';
-import Tasks from './pages/Tasks';
-import Login from './pages/Login';
-import Home from './pages/Home';
-import Signup from './pages/Signup';
-import ProjectDetails from './pages/ProjectDetails';
+import {
+ 
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { initialProjects } from "./data/project";
+import { useState } from "react";
+import { loginAsync } from "./API/AuthAPI.js";
+import Projects from "./pages/Projects";
+import Tasks from "./pages/Tasks";
+import Login from "./pages/Login";
+import Home from "./pages/Home";
+import Signup from "./pages/Signup";
+import ProjectDetails from "./pages/ProjectDetails";
 import Inbox from './pages/Inbox';
 import Team from './pages/Team';
-import './App.css';
+import "./App.css";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [projects, setProjects] = useState(initialProjects);
 
-  const handleLogin = () => {
-    setIsAuthenticated(true);
+  const handleLogin = async (formData) => {
+    try {
+      let tokens = await loginAsync({ ...formData });
+      localStorage.setItem("tokens", JSON.stringify(tokens));
+      setIsAuthenticated(true);
+    } catch (error) {
+      // Do something here like show a login fail message to user
+      console.log("Login failed.");
+      throw error;
+    }
   };
 
   const handleLogout = () => {
@@ -28,7 +42,9 @@ function App() {
   };
 
   const handleUpdateProject = (projectId, updates) => {
-    setProjects(projects.map(p => (p.id === projectId ? { ...p, ...updates } : p)));
+    setProjects(
+      projects.map((p) => (p.id === projectId ? { ...p, ...updates } : p))
+    );
   };
 
   // Protected Route Wrapper Component
