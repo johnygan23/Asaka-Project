@@ -8,6 +8,7 @@ import Home from './pages/Home';
 import Signup from './pages/Signup';
 import ProjectDetails from './pages/ProjectDetails';
 import Inbox from './pages/Inbox';
+import Team from './pages/Team';
 import './App.css';
 
 function App() {
@@ -105,12 +106,7 @@ function App() {
             path="/teams"
             element={
               <ProtectedRoute>
-                <div className="min-h-screen flex items-center justify-center">
-                  <div className="text-center">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">Teams</h1>
-                    <p className="text-gray-600">This page is coming soon!</p>
-                  </div>
-                </div>
+                <Team onLogout={handleLogout} projects={projects} />
               </ProtectedRoute>
             }
           />
