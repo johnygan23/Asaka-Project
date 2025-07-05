@@ -1,20 +1,34 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { initialProjects } from './data/project';
-import { useState } from 'react';
-import Projects from './pages/Projects';
-import Tasks from './pages/Tasks';
-import Login from './pages/Login';
-import Home from './pages/Home';
-import Signup from './pages/Signup';
-import ProjectDetails from './pages/ProjectDetails';
-import './App.css';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import { initialProjects } from "./data/project";
+import { useState } from "react";
+import { loginAsync } from "./API/AuthAPI.js";
+import Projects from "./pages/Projects";
+import Tasks from "./pages/Tasks";
+import Login from "./pages/Login";
+import Home from "./pages/Home";
+import Signup from "./pages/Signup";
+import ProjectDetails from "./pages/ProjectDetails";
+import "./App.css";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [projects, setProjects] = useState(initialProjects);
 
-  const handleLogin = () => {
-    setIsAuthenticated(true);
+  const handleLogin = async (formData) => {
+    try {
+      let tokens = await loginAsync({ ...formData });
+      localStorage.setItem("tokens", JSON.stringify(tokens));
+      setIsAuthenticated(true);
+    } catch (error) {
+      // Do something here like show a login fail message to user
+      console.log("Login failed.");
+      throw error;
+    }
   };
 
   const handleLogout = () => {
@@ -26,7 +40,9 @@ function App() {
   };
 
   const handleUpdateProject = (projectId, updates) => {
-    setProjects(projects.map(p => (p.id === projectId ? { ...p, ...updates } : p)));
+    setProjects(
+      projects.map((p) => (p.id === projectId ? { ...p, ...updates } : p))
+    );
   };
 
   // Protected Route Wrapper Component
@@ -42,17 +58,16 @@ function App() {
           <Route
             path="/login"
             element={
-              isAuthenticated ?
-                <Navigate to="/home" replace /> :
+              isAuthenticated ? (
+                <Navigate to="/home" replace />
+              ) : (
                 <Login onLogin={handleLogin} />
+              )
             }
           />
 
           {/* Protected Routes */}
-          <Route
-            path="/signup"
-            element={<Signup />}
-          />
+          <Route path="/signup" element={<Signup />} />
           <Route
             path="/home"
             element={
@@ -87,7 +102,11 @@ function App() {
             path="/projects/:projectId"
             element={
               <ProtectedRoute>
-                <ProjectDetails onLogout={handleLogout} projects={projects} onUpdateProject={handleUpdateProject} />
+                <ProjectDetails
+                  onLogout={handleLogout}
+                  projects={projects}
+                  onUpdateProject={handleUpdateProject}
+                />
               </ProtectedRoute>
             }
           />
@@ -98,7 +117,9 @@ function App() {
               <ProtectedRoute>
                 <div className="min-h-screen flex items-center justify-center">
                   <div className="text-center">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">Inbox</h1>
+                    <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                      Inbox
+                    </h1>
                     <p className="text-gray-600">This page is coming soon!</p>
                   </div>
                 </div>
@@ -111,7 +132,9 @@ function App() {
               <ProtectedRoute>
                 <div className="min-h-screen flex items-center justify-center">
                   <div className="text-center">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">Teams</h1>
+                    <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                      Teams
+                    </h1>
                     <p className="text-gray-600">This page is coming soon!</p>
                   </div>
                 </div>
@@ -122,7 +145,9 @@ function App() {
           {/* Default Route */}
           <Route
             path="/"
-            element={<Navigate to={isAuthenticated ? "/home" : "/login"} replace />}
+            element={
+              <Navigate to={isAuthenticated ? "/home" : "/login"} replace />
+            }
           />
         </Routes>
       </div>
