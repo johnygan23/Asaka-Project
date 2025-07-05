@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import Layout from '../components/Layout';
-import { tasksMock } from '../data/project';
+import { useTasks } from '../context/TaskContext';
+import { FiEdit2, FiCalendar, FiCheck, FiPaperclip, FiDownload, FiX } from 'react-icons/fi';
+import TaskDetailsModal from '../components/TaskDetailsModal';
+import FilesView from '../components/FilesView';
+import { initialProjects } from '../data/project';
 
 const columns = [
   { key: 'recent', title: 'Recently assigned' },
@@ -17,21 +21,157 @@ const priorityColors = {
 
 // For demo, assign tasks to columns by id or status
 const getColumnTasks = (tasks) => ({
-  recent: tasks.filter(t => t.id === 1 || t.id === 2),
-  today: [],
-  nextweek: [],
-  later: [],
+  recent: tasks.filter(t => t.status === 'recent'),
+  today: tasks.filter(t => t.status === 'today'),
+  nextweek: tasks.filter(t => t.status === 'nextweek'),
+  later: tasks.filter(t => t.status === 'later'),
 });
 
 const Tasks = ({ onLogout, projects = [] }) => {
-  const [tasks, setTasks] = useState(tasksMock);
+  const { tasks, addTask, updateTask } = useTasks();
+  const [inlineAddStatus, setInlineAddStatus] = useState(null); // which column is adding
+  const [inlineTask, setInlineTask] = useState({ title: '', due: '' });
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [activeTab, setActiveTab] = useState('board'); // 'board', 'dashboard', 'files'
   const columnTasks = getColumnTasks(tasks);
 
+  // Get all files from all tasks
+  const allFiles = tasks.reduce((files, task) => {
+    if (task.attachments && task.attachments.length > 0) {
+      return [...files, ...task.attachments.map(file => ({ ...file, taskTitle: task.title, taskId: task.id }))];
+    }
+    return files;
+  }, []);
+
   const toggleComplete = (id) => {
-    setTasks(prev => prev.map(task =>
-      task.id === id ? { ...task, completed: !task.completed } : task
-    ));
+    updateTask(id, { completed: !tasks.find(t => t.id === id)?.completed });
   };
+
+  const handleInlineAdd = (colKey) => {
+    if (inlineTask.title.trim()) {
+      addTask({
+        id: Date.now().toString(),
+        title: inlineTask.title,
+        priority: 'Medium',
+        due: inlineTask.due,
+        completed: false,
+        status: colKey
+      });
+      setInlineTask({ title: '', due: '' });
+      setInlineAddStatus(null);
+    }
+  };
+
+  // Find project name for modal (if any)
+  const getProjectName = (task) => {
+    if (task.projectId) {
+      const project = initialProjects.find(p => p.id === task.projectId);
+      return project ? project.name : '';
+    }
+    return '';
+  };
+
+  const handleFileClick = (file) => {
+    // In a real app, this would open the file or download it
+    if (file.url) {
+      window.open(file.url, '_blank');
+    }
+  };
+
+  const renderBoardView = () => (
+    <div className="flex gap-4 w-full overflow-x-auto pb-8 min-h-[70vh]">
+      {columns.map(col => (
+        <div key={col.key} className="bg-gray-300 rounded-xl min-w-[300px] w-72 flex flex-col p-3 flex-1">
+          <div className="flex items-center justify-between mb-2">
+            <div className="font-semibold text-black text-base flex items-center gap-2">
+              {col.title}
+              <span className="bg-gray-700 text-gray-200 text-xs rounded-full px-2 py-0.5 ml-1">{columnTasks[col.key]?.length || 0}</span>
+            </div>
+          </div>
+          {/* Add Task Button under the board title */}
+          {inlineAddStatus === col.key ? (
+            <div className="bg-white rounded-lg p-4 shadow flex flex-col gap-2 border border-gray-800 mb-2">
+              <div className="flex items-center gap-2 mb-1">
+                <button className="w-6 h-6 flex items-center justify-center rounded-full border border-gray-500 text-gray-400" tabIndex={-1}>
+                  <FiCheck />
+                </button>
+                <input
+                  autoFocus
+                  type="text"
+                  value={inlineTask.title}
+                  onChange={e => setInlineTask(prev => ({ ...prev, title: e.target.value }))}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') handleInlineAdd(col.key);
+                    if (e.key === 'Escape') { setInlineAddStatus(null); setInlineTask({ title: '', due: '' }); }
+                  }}
+                  onBlur={() => { if (!inlineTask.title) setInlineAddStatus(null); }}
+                  placeholder="Write a task name"
+                  className="flex-1 bg-transparent border-none outline-none text-gray-800 placeholder-gray-400 text-base"
+                />
+              </div>
+              <div className="flex items-center gap-2 mt-1">
+                <button className="w-8 h-8 flex items-center justify-center rounded-full border border-dashed border-gray-500 text-gray-400" tabIndex={-1}>
+                  <FiCalendar />
+                </button>
+                <input
+                  type="date"
+                  value={inlineTask.due}
+                  onChange={e => setInlineTask(prev => ({ ...prev, due: e.target.value }))}
+                  className="bg-transparent border-none outline-none text-gray-800 placeholder-gray-400 text-sm"
+                />
+                <button
+                  className="ml-auto px-2 py-1 text-blue-500 hover:text-blue-700 text-sm font-medium"
+                  onClick={() => handleInlineAdd(col.key)}
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              className="flex items-center gap-2 text-gray-500 hover:text-blue-600 font-medium mb-2 pl-1 focus:outline-none bg-transparent border-none shadow-none"
+              style={{ boxShadow: 'none' }}
+              onClick={() => {
+                setInlineAddStatus(col.key);
+                setInlineTask({ title: '', due: '' });
+              }}
+            >
+              <span className="text-2xl leading-none">+</span>
+              <span className="text-base">Add task</span>
+            </button>
+          )}
+          <div className="flex flex-col gap-3 flex-1 min-h-[60vh]">
+            {columnTasks[col.key]?.map(task => (
+              <div
+                key={task.id}
+                className="bg-white rounded-lg p-4 shadow flex flex-col gap-2 border border-gray-800 group relative cursor-pointer"
+                onClick={() => setSelectedTask({ ...task, projectName: getProjectName(task) })}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <button
+                    onClick={e => { e.stopPropagation(); toggleComplete(task.id); }}
+                    className={`w-6 h-6 flex items-center justify-center rounded-full border-2 transition-colors duration-200 ${task.completed ? 'border-green-400 bg-green-400' : 'border-gray-400 bg-transparent hover:border-cyan-400'}`}
+                    aria-label={task.completed ? 'Mark as incomplete' : 'Mark as complete'}
+                  >
+                    {task.completed ? (
+                      <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                    ) : (
+                      <span className="block w-3 h-3 rounded-full bg-transparent"></span>
+                    )}
+                  </button>
+                  <div className={`font-medium text-black ${task.completed ? 'line-through text-gray-400' : ''}`}>{task.title}</div>
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className={`px-2 py-1 rounded text-xs font-semibold ${priorityColors[task.priority]}`}>{task.priority}</span>
+                </div>
+                <div className="text-xs text-gray-800">{task.due ? task.due : ''}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 
   return (
     <Layout onLogout={onLogout} projects={projects}>
@@ -45,51 +185,51 @@ const Tasks = ({ onLogout, projects = [] }) => {
       {/* Board Tabs and Options */}
       <div className="flex items-center gap-6 mb-4">
         <div className="flex gap-2">
-          <button className="text-black/80 border-b-2 border-blue-500 px-2 pb-1 font-medium">Board</button>
-          <button className="text-black/40 hover:text-white/80 px-2 pb-1 font-medium">Dashboard</button>
+          <button 
+            className={`px-2 pb-1 font-medium ${activeTab === 'board' ? 'text-black/80 border-b-2 border-blue-500' : 'text-black/40 hover:text-white/80'}`}
+            onClick={() => setActiveTab('board')}
+          >
+            Board
+          </button>
+          <button 
+            className={`px-2 pb-1 font-medium ${activeTab === 'dashboard' ? 'text-black/80 border-b-2 border-blue-500' : 'text-black/40 hover:text-white/80'}`}
+            onClick={() => setActiveTab('dashboard')}
+          >
+            Dashboard
+          </button>
+          <button 
+            className={`px-2 pb-1 font-medium ${activeTab === 'files' ? 'text-black/80 border-b-2 border-blue-500' : 'text-black/40 hover:text-white/80'}`}
+            onClick={() => setActiveTab('files')}
+          >
+            Files
+          </button>
         </div>
         <div className="flex-1" />
       </div>
-      {/* Kanban Board */}
-      <div className="flex gap-4 w-full overflow-x-auto pb-8 min-h-[70vh]">
-        {columns.map(col => (
-          <div key={col.key} className="bg-gray-300 rounded-xl min-w-[300px] w-72 flex flex-col p-3 flex-1">
-            <div className="flex items-center justify-between mb-2">
-              <div className="font-semibold text-black text-base flex items-center gap-2">
-                {col.title}
-                <span className="bg-gray-700 text-gray-200 text-xs rounded-full px-2 py-0.5 ml-1">{columnTasks[col.key]?.length || 0}</span>
-              </div>
-            </div>
-            <div className="flex flex-col gap-3 flex-1 min-h-[60vh]">
-              {columnTasks[col.key]?.length === 0 && (
-                <div className="w-full py-2 text-gray-400 text-sm rounded bg-transparent border-2 border-dashed border-gray-700 mt-2 text-center">No tasks</div>
-              )}
-              {columnTasks[col.key]?.map(task => (
-                <div key={task.id} className="bg-white rounded-lg p-4 shadow flex flex-col gap-2 border border-gray-800">
-                  <div className="flex items-center gap-2 mb-1">
-                    <button
-                      onClick={() => toggleComplete(task.id)}
-                      className={`w-6 h-6 flex items-center justify-center rounded-full border-2 transition-colors duration-200 ${task.completed ? 'border-green-400 bg-green-400' : 'border-gray-400 bg-transparent hover:border-cyan-400'}`}
-                      aria-label={task.completed ? 'Mark as incomplete' : 'Mark as complete'}
-                    >
-                      {task.completed ? (
-                        <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                      ) : (
-                        <span className="block w-3 h-3 rounded-full bg-transparent"></span>
-                      )}
-                    </button>
-                    <div className={`font-medium text-black ${task.completed ? 'line-through text-gray-400' : ''}`}>{task.title}</div>
-                  </div>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className={`px-2 py-1 rounded text-xs font-semibold ${priorityColors[task.priority]}`}>{task.priority}</span>
-                  </div>
-                  <div className="text-xs text-gray-800">{task.due ? `Jul 7 – 9` : ''}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
+      
+      {/* Content based on active tab */}
+      {activeTab === 'board' && renderBoardView()}
+      {activeTab === 'dashboard' && (
+        <div className="bg-white rounded-lg p-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Dashboard</h2>
+          <p className="text-gray-500">Dashboard view coming soon...</p>
+        </div>
+      )}
+      {activeTab === 'files' && (
+        <FilesView 
+          files={allFiles} 
+          onFileClick={handleFileClick}
+        />
+      )}
+      
+      {selectedTask && (
+        <TaskDetailsModal
+          task={selectedTask}
+          onClose={() => setSelectedTask(null)}
+          onSave={updated => updateTask(selectedTask.id, updated)}
+          projects={initialProjects}
+        />
+      )}
     </Layout>
   );
 };

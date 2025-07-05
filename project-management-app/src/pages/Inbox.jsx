@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import Layout from '../components/Layout';
-import { inboxMessages, messageTypes, priorityColors } from '../data/inbox';
+import { inboxMessages } from '../data/inbox';
 
 const Inbox = ({ onLogout, projects = [] }) => {
     const [messages, setMessages] = useState(inboxMessages);
@@ -38,7 +38,6 @@ const Inbox = ({ onLogout, projects = [] }) => {
 
     // Get unread count
     const unreadCount = messages.filter(m => !m.isRead).length;
-    const actionRequiredCount = messages.filter(m => m.actionRequired).length;
 
     // Mark message as read
     const markAsRead = (messageId) => {

@@ -3,25 +3,12 @@ import Layout from '../components/Layout';
 import { teamMembers } from '../data/team';
 
 const Team = ({ onLogout, projects = [] }) => {
-    const [members, setMembers] = useState(teamMembers);
+    const [members] = useState(teamMembers);
     const [selectedMember, setSelectedMember] = useState(null);
     const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
 
     // Show all members since we removed filtering
     const filteredMembers = members;
-
-    // Get online count
-    const onlineCount = members.filter(m => m.status === 'online').length;
-
-    // Format join date
-    const formatJoinDate = (dateString) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { 
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-        });
-    };
 
     return (
         <Layout onLogout={onLogout} projects={projects}>
