@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { people } from '../data/people';
 import { taskPriorities, taskStatuses } from '../data/task';
 
-const CreateTaskModal = ({ onClose, onSubmit, defaultStatus }) => {
-    const [taskData, setTaskData] = useState({
+const CreateTaskModal = ({ onClose, onSubmit, onDelete, defaultStatus, initialData = null }) => {
+    const isEdit = Boolean(initialData);
+    const [taskData, setTaskData] = useState(initialData || {
         title: '',
         assignee: null,
         dueDate: '',
@@ -12,18 +13,22 @@ const CreateTaskModal = ({ onClose, onSubmit, defaultStatus }) => {
         tags: []
     });
 
+    useEffect(() => {
+        if (initialData) {
+            setTaskData(initialData);
+        }
+    }, [initialData]);
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        onSubmit({
-            ...taskData,
-            id: Date.now().toString(),
-        });
+        const payload = isEdit ? taskData : { ...taskData, id: Date.now().toString() };
+        onSubmit(payload);
     };
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                <h2 className="text-xl font-bold mb-4">Create New Task</h2>
+                <h2 className="text-xl font-bold mb-4">{isEdit ? 'Edit Task' : 'Create New Task'}</h2>
 
                 <form onSubmit={handleSubmit}>
                     {/* Task Title */}
@@ -102,11 +107,20 @@ const CreateTaskModal = ({ onClose, onSubmit, defaultStatus }) => {
                         >
                             Cancel
                         </button>
+                        {isEdit && (
+                            <button
+                                type="button"
+                                onClick={() => onDelete && onDelete(taskData.id)}
+                                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                            >
+                                Delete
+                            </button>
+                        )}
                         <button
                             type="submit"
                             className="px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600"
                         >
-                            Create Task
+                            {isEdit ? 'Update Task' : 'Create Task'}
                         </button>
                     </div>
                 </form>
@@ -114,3 +128,5 @@ const CreateTaskModal = ({ onClose, onSubmit, defaultStatus }) => {
         </div>
     );
 };
+
+export default CreateTaskModal;

@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { initialProjects } from './data/project';
 import { useState } from 'react';
 import Projects from './pages/Projects';
@@ -35,98 +35,92 @@ function App() {
   };
 
   return (
-    <Router>
-      <div className="App">
-        <Routes>
-          {/* Public Routes */}
-          <Route
-            path="/login"
-            element={
-              isAuthenticated ?
-                <Navigate to="/home" replace /> :
-                <Login onLogin={handleLogin} />
-            }
-          />
-
-          {/* Protected Routes */}
-          <Route
-            path="/signup"
-            element={<Signup />}
-          />
-          <Route
-            path="/home"
-            element={
-              <ProtectedRoute>
-                <Home onLogout={handleLogout} projects={projects} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/tasks"
-            element={
-              <ProtectedRoute>
-                <Tasks onLogout={handleLogout} projects={projects} />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/projects"
-            element={
-              <ProtectedRoute>
-                <Projects
-                  onLogout={handleLogout}
-                  projects={projects}
-                  onAddProject={handleAddProject}
-                />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Project Details */}
-          <Route
-            path="/projects/:projectId"
-            element={
-              <ProtectedRoute>
-                <ProjectDetails onLogout={handleLogout} projects={projects} onUpdateProject={handleUpdateProject} />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/inbox"
-            element={
-              <ProtectedRoute>
-                <div className="min-h-screen flex items-center justify-center">
-                  <div className="text-center">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">Inbox</h1>
-                    <p className="text-gray-600">This page is coming soon!</p>
-                  </div>
+    <div className="App">
+      <Routes>
+        {/* Public Routes */}
+        <Route
+          path="/login"
+          element={
+            isAuthenticated ?
+              <Navigate to="/home" replace /> :
+              <Login onLogin={handleLogin} />
+          }
+        />
+        {/* Protected Routes */}
+        <Route
+          path="/signup"
+          element={<Signup />}
+        />
+        <Route
+          path="/home"
+          element={
+            <ProtectedRoute>
+              <Home onLogout={handleLogout} projects={projects} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/tasks"
+          element={
+            <ProtectedRoute>
+              <Tasks onLogout={handleLogout} projects={projects} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/projects"
+          element={
+            <ProtectedRoute>
+              <Projects
+                onLogout={handleLogout}
+                projects={projects}
+                onAddProject={handleAddProject}
+              />
+            </ProtectedRoute>
+          }
+        />
+        {/* Project Details */}
+        <Route
+          path="/projects/:projectId"
+          element={
+            <ProtectedRoute>
+              <ProjectDetails onLogout={handleLogout} projects={projects} onUpdateProject={handleUpdateProject} />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/inbox"
+          element={
+            <ProtectedRoute>
+              <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                  <h1 className="text-2xl font-bold text-gray-900 mb-2">Inbox</h1>
+                  <p className="text-gray-600">This page is coming soon!</p>
                 </div>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/teams"
-            element={
-              <ProtectedRoute>
-                <div className="min-h-screen flex items-center justify-center">
-                  <div className="text-center">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-2">Teams</h1>
-                    <p className="text-gray-600">This page is coming soon!</p>
-                  </div>
+              </div>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/teams"
+          element={
+            <ProtectedRoute>
+              <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                  <h1 className="text-2xl font-bold text-gray-900 mb-2">Teams</h1>
+                  <p className="text-gray-600">This page is coming soon!</p>
                 </div>
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Default Route */}
-          <Route
-            path="/"
-            element={<Navigate to={isAuthenticated ? "/home" : "/login"} replace />}
-          />
-        </Routes>
-      </div>
-    </Router>
+              </div>
+            </ProtectedRoute>
+          }
+        />
+        {/* Default Route */}
+        <Route
+          path="/"
+          element={<Navigate to={isAuthenticated ? "/home" : "/login"} replace />}
+        />
+      </Routes>
+    </div>
   );
 }
 
