@@ -129,38 +129,4 @@ export const inboxMessages = [
         priority: 'high',
         actionRequired: true
     }
-];
-
-export const messageTypes = {
-    task_assigned: {
-        label: 'Task Assigned',
-        icon: '📋',
-        color: 'bg-blue-100 text-blue-700'
-    },
-    project_update: {
-        label: 'Project Update',
-        icon: '📊',
-        color: 'bg-green-100 text-green-700'
-    },
-    comment: {
-        label: 'Comment',
-        icon: '💬',
-        color: 'bg-purple-100 text-purple-700'
-    },
-    deadline_reminder: {
-        label: 'Deadline Reminder',
-        icon: '⏰',
-        color: 'bg-red-100 text-red-700'
-    },
-    team_invite: {
-        label: 'Team Invite',
-        icon: '👥',
-        color: 'bg-orange-100 text-orange-700'
-    }
-};
-
-export const priorityColors = {
-    high: 'bg-red-500 text-white',
-    medium: 'bg-yellow-400 text-gray-900',
-    low: 'bg-green-400 text-gray-900'
-}; 
+]; 
