@@ -53,9 +53,9 @@ const Tasks = ({ onLogout, projects = [] }) => {
       {/* Kanban Board */}
       <div className="flex gap-4 w-full overflow-x-auto pb-8 min-h-[70vh]">
         {columns.map(col => (
-          <div key={col.key} className="bg-[#18191c] rounded-xl min-w-[300px] w-72 flex flex-col p-3 flex-1">
+          <div key={col.key} className="bg-gray-300 rounded-xl min-w-[300px] w-72 flex flex-col p-3 flex-1">
             <div className="flex items-center justify-between mb-2">
-              <div className="font-semibold text-white text-base flex items-center gap-2">
+              <div className="font-semibold text-black text-base flex items-center gap-2">
                 {col.title}
                 <span className="bg-gray-700 text-gray-200 text-xs rounded-full px-2 py-0.5 ml-1">{columnTasks[col.key]?.length || 0}</span>
               </div>
@@ -65,7 +65,7 @@ const Tasks = ({ onLogout, projects = [] }) => {
                 <div className="w-full py-2 text-gray-400 text-sm rounded bg-transparent border-2 border-dashed border-gray-700 mt-2 text-center">No tasks</div>
               )}
               {columnTasks[col.key]?.map(task => (
-                <div key={task.id} className="bg-[#232428] rounded-lg p-4 shadow flex flex-col gap-2 border border-gray-800">
+                <div key={task.id} className="bg-white rounded-lg p-4 shadow flex flex-col gap-2 border border-gray-800">
                   <div className="flex items-center gap-2 mb-1">
                     <button
                       onClick={() => toggleComplete(task.id)}
@@ -73,17 +73,17 @@ const Tasks = ({ onLogout, projects = [] }) => {
                       aria-label={task.completed ? 'Mark as incomplete' : 'Mark as complete'}
                     >
                       {task.completed ? (
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                        <svg className="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
                       ) : (
                         <span className="block w-3 h-3 rounded-full bg-transparent"></span>
                       )}
                     </button>
-                    <div className={`font-medium text-white ${task.completed ? 'line-through text-gray-400' : ''}`}>{task.title}</div>
+                    <div className={`font-medium text-black ${task.completed ? 'line-through text-gray-400' : ''}`}>{task.title}</div>
                   </div>
                   <div className="flex items-center gap-2 mt-1">
                     <span className={`px-2 py-1 rounded text-xs font-semibold ${priorityColors[task.priority]}`}>{task.priority}</span>
                   </div>
-                  <div className="text-xs text-gray-400">{task.due ? `Jul 7 – 9` : ''}</div>
+                  <div className="text-xs text-gray-800">{task.due ? `Jul 7 – 9` : ''}</div>
                 </div>
               ))}
             </div>
