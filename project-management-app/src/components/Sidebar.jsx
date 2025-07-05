@@ -6,9 +6,11 @@ import ProjectsIcon from '../assets/folders-svgrepo-com.svg';
 import TeamIcon from '../assets/team-svgrepo-com.svg';
 import TasksIcon from '../assets/to-do-svgrepo-com.svg';
 import LogoutIcon from '../assets/logout-svgrepo-com.svg';
+import { inboxMessages } from '../data/inbox';
 
 const Sidebar = ({ onLogout, projects = [] }) => {
     const [projectsOpen, setProjectsOpen] = useState(false);
+    const unreadCount = inboxMessages.filter(m => !m.isRead).length;
     // Function to get NavLink classes with active state
     const getLinkClasses = ({ isActive }) => {
         return `flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-colors duration-200 ${isActive
@@ -37,6 +39,11 @@ const Sidebar = ({ onLogout, projects = [] }) => {
                         <NavLink to="/inbox" className={getLinkClasses}>
                             <img src={InboxIcon} alt="Inbox" className="w-5 h-5 flex-shrink-0" />
                             <span className="truncate">Inbox</span>
+                            {unreadCount > 0 && (
+                                <span className="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
+                                    {unreadCount}
+                                </span>
+                            )}
                         </NavLink>
                     </li>
                     <li>
