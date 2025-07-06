@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import CreateProjectModal from '../components/CreateProjectModal';
 import { useNavigate } from 'react-router-dom';
-import { getAllProjects, addProject } from '../API/ProjectAPI';
+import { getAllProjects } from '../API/ProjectAPI';
 
 const Projects = ({ onLogout }) => {
     const [projects, setProjects] = useState([]);
@@ -13,7 +13,7 @@ const Projects = ({ onLogout }) => {
     //     const fetchProjects = async () => {
     //         try {
     //             const response = await getAllProjects();
-    //             var data = response.data;
+    //             const data = response.data;
     //             setProjects(Array.isArray(data) ? data : (data.projects || []));
     //         } catch (error) {
     //             setProjects([]);
@@ -82,7 +82,7 @@ const Projects = ({ onLogout }) => {
                                 className={`w-4 h-4 rounded-sm flex-shrink-0 ${project.color?.startsWith('#') ? '' : project.color}`}
                                 style={project.color?.startsWith('#') ? { backgroundColor: project.color } : {}}
                             />
-                            <h2 className="text-lg font-semibold text-gray-900 truncate">{project.name || project.title}</h2>
+                            <h2 className="text-lg font-semibold text-gray-900 truncate">{project.title}</h2>
                         </div>
                         {project.status && (
                             <span className="inline-block px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700">

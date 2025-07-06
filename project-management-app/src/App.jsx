@@ -11,6 +11,7 @@ import Team from './pages/Team';
 import { loginAsync } from './API/AuthAPI';
 import * as ProjectAPI from './API/ProjectAPI';
 import './App.css';
+import { getAllProjects } from './API/ProjectAPI';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
