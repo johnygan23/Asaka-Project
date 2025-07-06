@@ -184,7 +184,7 @@ const Home = ({ onLogout, projects }) => {
                                             <li key={project.id} className="flex items-center justify-between bg-gray-100 rounded-lg px-5 py-4">
                                                 <div className="flex items-center gap-3">
                                                     <span className={`w-4 h-4 rounded-full ${project.color}`}></span>
-                                                    <span className="text-lg font-medium text-gray-900">{project.name}</span>
+                                                    <span className="text-lg font-medium text-gray-900">{project.name || project.title}</span>
                                                     {project.role && <span className="ml-3 px-2 py-1 rounded text-xs font-semibold bg-gray-200 text-gray-700">{project.role}</span>}
                                                 </div>
                                                 <span className={`px-2 py-1 rounded text-xs font-semibold ${statusColors[project.status]}`}>{project.status}</span>

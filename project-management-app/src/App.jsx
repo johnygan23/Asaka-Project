@@ -9,6 +9,7 @@ import ProjectDetails from './pages/ProjectDetails';
 import Inbox from './pages/Inbox';
 import Team from './pages/Team';
 import { loginAsync } from './API/AuthAPI';
+import * as ProjectAPI from './API/ProjectAPI';
 import './App.css';
 
 function App() {
@@ -17,31 +18,45 @@ function App() {
   const [loadingProjects, setLoadingProjects] = useState(true);
 
   useEffect(() => {
-    const fetchProjects = async () => {
-      setLoadingProjects(true);
-      try {
-        const data = await ProjectAPI.getAllProjects();
-        setProjects(Array.isArray(data) ? data : (data.projects || []));
-      } catch (error) {
-        setProjects([]);
-      } finally {
-        setLoadingProjects(false);
-      }
-    };
-    fetchProjects();
+    // Check if user is authenticated before fetching projects
+    const tokens = localStorage.getItem("tokens");
+    if (!tokens) {
+      setIsAuthenticated(false);
+      setLoadingProjects(false);
+      return;
+    }
+
+    setIsAuthenticated(true);
   }, []);
+
+    const fetchProjects = async () => {
+    setLoadingProjects(true);
+    try {
+      const response = await ProjectAPI.getAllProjects();
+      // Handle axios response structure - response.data contains the actual data
+      const data = response?.data || response;
+      setProjects(Array.isArray(data) ? data : (data.projects || []));
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+      setProjects([]);
+    } finally {
+      setLoadingProjects(false);
+    }
+  };
 
   const handleLogin = async (formData) => {
     try {
       let tokens = await loginAsync({ ...formData });
       localStorage.setItem("tokens", JSON.stringify(tokens));
       setIsAuthenticated(true);
+      // Fetch projects after successful login
+      await fetchProjects();
     } catch (error) {
       // Do something here like show a login fail message to user
       console.log("Login failed.");
       throw error;
-    }
-  };
+    }
+  };
 
   const handleLogout = () => {
     setIsAuthenticated(false);

@@ -83,7 +83,7 @@ const Tasks = ({ onLogout, projects = [] }) => {
   const getProjectName = (task) => {
     if (task.projectId) {
       const project = projects.find(p => p.id === task.projectId);
-      return project ? project.name : '';
+              return project ? (project.name || project.title) : '';
     }
     return '';
   };

@@ -11,6 +11,7 @@ import { inboxMessages } from '../data/inbox';
 const Sidebar = ({ onLogout, projects = [] }) => {
     const [projectsOpen, setProjectsOpen] = useState(false);
     const unreadCount = inboxMessages.filter(m => !m.isRead).length;
+    
     // Function to get NavLink classes with active state
     const getLinkClasses = ({ isActive }) => {
         return `flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-colors duration-200 ${isActive
@@ -70,23 +71,30 @@ const Sidebar = ({ onLogout, projects = [] }) => {
                             {/* Project list */}
                             {projectsOpen && projects.length > 0 && (
                                 <ul className="mt-1 pl-2 space-y-0.5">
-                                    {projects.map((project) => (
-                                        <li key={project.id}>
-                                            <NavLink
-                                                to={`/projects/${project.id}`}
-                                                className={({ isActive }) =>
-                                                    `flex items-center gap-2 px-2 py-2 rounded-lg text-sm transition-colors duration-200 ${isActive
-                                                        ? 'bg-cyan-50 text-cyan-700'
-                                                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
-                                            >
-                                                <span
-                                                    className={`w-4 h-4 rounded-sm flex-shrink-0 ${project.color.startsWith('#') ? '' : project.color}`}
-                                                    style={project.color.startsWith('#') ? { backgroundColor: project.color } : {}}
-                                                />
-                                                <span className="truncate">{project.name}</span>
-                                            </NavLink>
-                                        </li>
-                                    ))}
+                                    {projects.map((project) => {
+                                        // Skip projects without required properties
+                                        if (!project || !project.id || (!project.name && !project.title)) {
+                                            return null;
+                                        }
+                                        
+                                        return (
+                                            <li key={project.id}>
+                                                <NavLink
+                                                    to={`/projects/${project.id}`}
+                                                    className={({ isActive }) =>
+                                                        `flex items-center gap-2 px-2 py-2 rounded-lg text-sm transition-colors duration-200 ${isActive
+                                                            ? 'bg-cyan-50 text-cyan-700'
+                                                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
+                                                >
+                                                    <span
+                                                        className={`w-4 h-4 rounded-sm flex-shrink-0 ${project.color?.startsWith('#') ? '' : (project.color || 'bg-gray-400')}`}
+                                                        style={project.color?.startsWith('#') ? { backgroundColor: project.color } : {}}
+                                                    />
+                                                    <span className="truncate">{project.name || project.title}</span>
+                                                </NavLink>
+                                            </li>
+                                        );
+                                    })}
                                 </ul>
                             )}
                         </div>

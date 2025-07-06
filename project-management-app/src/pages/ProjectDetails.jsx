@@ -17,12 +17,12 @@ const ProjectDetails = ({ onLogout, projects = [], onUpdateProject }) => {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const { tasks } = useTasks();
 
-    // Find current project from list (convert id to number)
-    const currentProject = projects.find(p => p.id === Number(projectId));
+    // Find current project from list (handle both string and number IDs)
+    const currentProject = projects.find(p => p.id === projectId || p.id === Number(projectId));
 
     // Get all files from tasks in this project
     const projectFiles = tasks.reduce((files, task) => {
-        if (task.projectId === Number(projectId) && task.attachments && task.attachments.length > 0) {
+        if ((task.projectId === projectId || task.projectId === Number(projectId)) && task.attachments && task.attachments.length > 0) {
             return [...files, ...task.attachments.map(file => ({ ...file, taskTitle: task.title, taskId: task.id }))];
         }
         return files;
@@ -91,7 +91,7 @@ const ProjectDetails = ({ onLogout, projects = [], onUpdateProject }) => {
                             )}
                         </div>
                         <h1 className="text-2xl font-bold text-gray-900 truncate max-w-full">
-                            {currentProject.name}
+                            {currentProject.name || currentProject.title}
                         </h1>
                         {/* Dropdown button */}
                         <div className="relative">

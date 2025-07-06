@@ -2,37 +2,38 @@ import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import CreateProjectModal from '../components/CreateProjectModal';
 import { useNavigate } from 'react-router-dom';
-import { getAllProjectsByUserId, addProject } from '../API/ProjectAPI';
+import { getAllProjects, addProject } from '../API/ProjectAPI';
 
 const Projects = ({ onLogout }) => {
     const [projects, setProjects] = useState([]);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const fetchProjects = async () => {
-            try {
-                const data = await getAllProjectsByUserId();
-                setProjects(Array.isArray(data) ? data : (data.projects || []));
-            } catch (error) {
-                setProjects([]);
-            }
-        };
-        fetchProjects();
-    }, []);
+    // useEffect(() => {
+    //     const fetchProjects = async () => {
+    //         try {
+    //             const response = await getAllProjects();
+    //             var data = response.data;
+    //             setProjects(Array.isArray(data) ? data : (data.projects || []));
+    //         } catch (error) {
+    //             setProjects([]);
+    //         }
+    //     };
+    //     fetchProjects();
+    // });
 
-    // Listen for custom event from Header
-    useEffect(() => {
-        const handleOpenCreateProject = () => {
-            setShowCreateModal(true);
-        };
+    // // Listen for custom event from Header
+    // useEffect(() => {
+    //     const handleOpenCreateProject = () => {
+    //         setShowCreateModal(true);
+    //     };
 
-        window.addEventListener('openCreateProject', handleOpenCreateProject);
+    //     window.addEventListener('openCreateProject', handleOpenCreateProject);
 
-        return () => {
-            window.removeEventListener('openCreateProject', handleOpenCreateProject);
-        };
-    }, []);
+    //     return () => {
+    //         window.removeEventListener('openCreateProject', handleOpenCreateProject);
+    //     };
+    // }, []);
 
     const handleCreateClick = () => {
         setShowCreateModal(true);
@@ -81,7 +82,7 @@ const Projects = ({ onLogout }) => {
                                 className={`w-4 h-4 rounded-sm flex-shrink-0 ${project.color?.startsWith('#') ? '' : project.color}`}
                                 style={project.color?.startsWith('#') ? { backgroundColor: project.color } : {}}
                             />
-                            <h2 className="text-lg font-semibold text-gray-900 truncate">{project.name}</h2>
+                            <h2 className="text-lg font-semibold text-gray-900 truncate">{project.name || project.title}</h2>
                         </div>
                         {project.status && (
                             <span className="inline-block px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700">
