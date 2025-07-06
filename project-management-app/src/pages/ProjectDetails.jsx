@@ -18,7 +18,7 @@ const ProjectDetails = ({ onLogout, projects = [], onUpdateProject }) => {
     const { tasks } = useTasks();
 
     // Find current project from list (convert id to number)
-    const currentProject = projects.find(p => p.id === Number(projectId));
+    const currentProject = projects.find(p => p.id === projectId);
 
     // Get all files from tasks in this project
     const projectFiles = tasks.reduce((files, task) => {
@@ -91,7 +91,7 @@ const ProjectDetails = ({ onLogout, projects = [], onUpdateProject }) => {
                             )}
                         </div>
                         <h1 className="text-2xl font-bold text-gray-900 truncate max-w-full">
-                            {currentProject.name}
+                            {currentProject.title}
                         </h1>
                         {/* Dropdown button */}
                         <div className="relative">

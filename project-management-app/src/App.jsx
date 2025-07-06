@@ -10,38 +10,41 @@ import Inbox from './pages/Inbox';
 import Team from './pages/Team';
 import { loginAsync } from './API/AuthAPI';
 import './App.css';
+import { getAllProjects } from './API/ProjectAPI';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [projects, setProjects] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
 
-  useEffect(() => {
-    const fetchProjects = async () => {
-      setLoadingProjects(true);
-      try {
-        const data = await ProjectAPI.getAllProjects();
-        setProjects(Array.isArray(data) ? data : (data.projects || []));
-      } catch (error) {
-        setProjects([]);
-      } finally {
-        setLoadingProjects(false);
-      }
-    };
-    fetchProjects();
-  }, []);
+  const fetchProjects = async () => {
+    setLoadingProjects(true);
+    try {
+      const response = await getAllProjects();
+      const data = response.data;
+      console.log(data);
+      setProjects(Array.isArray(data) ? data : (data.projects || []));
+    } catch (error) {
+      setProjects([]);
+    } finally {
+      setLoadingProjects(false);
+    }
+  }
 
   const handleLogin = async (formData) => {
     try {
       let tokens = await loginAsync({ ...formData });
       localStorage.setItem("tokens", JSON.stringify(tokens));
       setIsAuthenticated(true);
+
+      await fetchProjects();
+
     } catch (error) {
       // Do something here like show a login fail message to user
       console.log("Login failed.");
       throw error;
     }
-  };
+  }
 
   const handleLogout = () => {
     setIsAuthenticated(false);

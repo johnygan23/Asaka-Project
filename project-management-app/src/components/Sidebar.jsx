@@ -80,10 +80,10 @@ const Sidebar = ({ onLogout, projects = [] }) => {
                                                         : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`}
                                             >
                                                 <span
-                                                    className={`w-4 h-4 rounded-sm flex-shrink-0 ${project.color.startsWith('#') ? '' : project.color}`}
-                                                    style={project.color.startsWith('#') ? { backgroundColor: project.color } : {}}
+                                                    className={`w-4 h-4 rounded-sm flex-shrink-0 ${project?.color?.startsWith('#') ? '' : project?.color}`}
+                                                    style={project?.color?.startsWith('#') ? { backgroundColor: project?.color } : {}}
                                                 />
-                                                <span className="truncate">{project.name}</span>
+                                                <span className="truncate">{project.title}</span>
                                             </NavLink>
                                         </li>
                                     ))}
