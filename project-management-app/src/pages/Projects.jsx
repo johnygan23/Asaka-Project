@@ -2,10 +2,24 @@ import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import CreateProjectModal from '../components/CreateProjectModal';
 import { useNavigate } from 'react-router-dom';
+import { ProjectAPI } from '../API/ProjectAPI';
 
-const Projects = ({ onLogout, projects, onAddProject }) => {
+const Projects = ({ onLogout }) => {
+    const [projects, setProjects] = useState([]);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchProjects = async () => {
+            try {
+                const data = await ProjectAPI.getAllProjects();
+                setProjects(Array.isArray(data) ? data : (data.projects || []));
+            } catch (error) {
+                setProjects([]);
+            }
+        };
+        fetchProjects();
+    }, []);
 
     // Listen for custom event from Header
     useEffect(() => {
@@ -28,8 +42,13 @@ const Projects = ({ onLogout, projects, onAddProject }) => {
         setShowCreateModal(false);
     };
 
-    const handleProjectCreate = (projectData) => {
-        onAddProject(projectData);
+    const handleProjectCreate = async (projectData) => {
+        try {
+            const created = await ProjectAPI.createProject(projectData);
+            setProjects(prev => [...prev, created]);
+        } catch (error) {
+            // Optionally handle error
+        }
         setShowCreateModal(false);
     };
 
@@ -59,8 +78,8 @@ const Projects = ({ onLogout, projects, onAddProject }) => {
                     >
                         <div className="flex items-center gap-3 mb-4">
                             <span
-                                className={`w-4 h-4 rounded-sm flex-shrink-0 ${project.color.startsWith('#') ? '' : project.color}`}
-                                style={project.color.startsWith('#') ? { backgroundColor: project.color } : {}}
+                                className={`w-4 h-4 rounded-sm flex-shrink-0 ${project.color?.startsWith('#') ? '' : project.color}`}
+                                style={project.color?.startsWith('#') ? { backgroundColor: project.color } : {}}
                             />
                             <h2 className="text-lg font-semibold text-gray-900 truncate">{project.name}</h2>
                         </div>

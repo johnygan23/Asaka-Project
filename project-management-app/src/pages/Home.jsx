@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import Layout from '../components/Layout';
-import { initialProjects, tasksMock } from '../data/project';
 
 const statusColors = {
     Active: 'bg-green-100 text-green-700',
@@ -49,12 +48,11 @@ function DonutChart({ completed, incomplete, completedColor, incompleteColor, te
     );
 }
 
-const Home = ({ onLogout }) => {
+const Home = ({ onLogout, projects }) => {
     const [tab, setTab] = useState('upcoming');
     const userName = 'Wong';
-    const [tasks, setTasks] = useState(tasksMock);
+    const [tasks, setTasks] = useState([]);
     const [notepad, setNotepad] = useState('');
-    const [projects] = useState(initialProjects);
 
     const totalTasks = tasks.length;
     const completedTasks = tasks.filter(t => t.completed).length;
@@ -74,8 +72,7 @@ const Home = ({ onLogout }) => {
         ));
     };
 
-
-  const projectCompleted = projects.filter(p => p.status === 'Completed').length;
+    const projectCompleted = projects.filter(p => p.status === 'Completed').length;
     return (
         <Layout onLogout={onLogout} projects={projects}>
             <main className="flex-1 flex flex-col bg-gray-50 min-h-screen">

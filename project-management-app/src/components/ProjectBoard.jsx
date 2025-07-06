@@ -5,7 +5,6 @@ import { people } from '../data/people';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { FiCalendar, FiUser } from 'react-icons/fi';
 import TaskDetailsModal from './TaskDetailsModal';
-import { initialProjects } from '../data/project';
 
 const statusColumns = [
     { id: taskStatuses.TODO, title: 'To Do' },
@@ -29,7 +28,7 @@ const getPriorityStyles = (priorityObj) => {
     }
 };
 
-const ProjectBoard = ({ projectId }) => {
+const ProjectBoard = ({ projectId, projects = [] }) => {
     const { tasks, addTask, updateTask } = useTasks();
     const [inlineAddStatus, setInlineAddStatus] = useState(null); // which column is adding
     const [inlineTask, setInlineTask] = useState({ title: '', priority: 'medium', status: taskStatuses.TODO, dueDate: '', assignee: '' });
@@ -68,7 +67,7 @@ const ProjectBoard = ({ projectId }) => {
     };
 
     // Find project name for modal
-    const project = initialProjects.find(p => p.id === projectId);
+    const project = Array.isArray(projects) ? projects.find(p => p.id === projectId) : undefined;
 
     return (
         <>
@@ -245,7 +244,7 @@ const ProjectBoard = ({ projectId }) => {
                 task={selectedTask}
                 onClose={() => setSelectedTask(null)}
                 onSave={updated => updateTask(selectedTask.id, updated)}
-                projects={initialProjects}
+                projects={projects}
             />
         )}
         </>

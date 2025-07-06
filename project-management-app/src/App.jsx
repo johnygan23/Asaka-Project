@@ -1,6 +1,5 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { initialProjects } from './data/project';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Projects from './pages/Projects';
 import Tasks from './pages/Tasks';
 import Login from './pages/Login';
@@ -10,10 +9,27 @@ import ProjectDetails from './pages/ProjectDetails';
 import Inbox from './pages/Inbox';
 import Team from './pages/Team';
 import './App.css';
+import { ProjectAPI } from './API/ProjectAPI';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [projects, setProjects] = useState(initialProjects);
+  const [projects, setProjects] = useState([]);
+  const [loadingProjects, setLoadingProjects] = useState(true);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      setLoadingProjects(true);
+      try {
+        const data = await ProjectAPI.getAllProjects();
+        setProjects(Array.isArray(data) ? data : (data.projects || []));
+      } catch (error) {
+        setProjects([]);
+      } finally {
+        setLoadingProjects(false);
+      }
+    };
+    fetchProjects();
+  }, []);
 
   const handleLogin = () => {
     setIsAuthenticated(true);
@@ -21,10 +37,6 @@ function App() {
 
   const handleLogout = () => {
     setIsAuthenticated(false);
-  };
-
-  const handleAddProject = (newproject) => {
-    setProjects([...projects, { ...newproject, id: Date.now() }]);
   };
 
   const handleUpdateProject = (projectId, updates) => {
@@ -73,11 +85,7 @@ function App() {
           path="/projects"
           element={
             <ProtectedRoute>
-              <Projects
-                onLogout={handleLogout}
-                projects={projects}
-                onAddProject={handleAddProject}
-              />
+              <Projects onLogout={handleLogout} />
             </ProtectedRoute>
           }
         />
