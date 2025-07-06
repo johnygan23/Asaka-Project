@@ -8,8 +8,8 @@ import Signup from './pages/Signup';
 import ProjectDetails from './pages/ProjectDetails';
 import Inbox from './pages/Inbox';
 import Team from './pages/Team';
+import { loginAsync } from './API/AuthAPI';
 import './App.css';
-import { ProjectAPI } from './API/ProjectAPI';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -31,9 +31,17 @@ function App() {
     fetchProjects();
   }, []);
 
-  const handleLogin = () => {
-    setIsAuthenticated(true);
-  };
+  const handleLogin = async (formData) => {
+    try {
+      let tokens = await loginAsync({ ...formData });
+      localStorage.setItem("tokens", JSON.stringify(tokens));
+      setIsAuthenticated(true);
+    } catch (error) {
+      // Do something here like show a login fail message to user
+      console.log("Login failed.");
+      throw error;
+    }
+  };
 
   const handleLogout = () => {
     setIsAuthenticated(false);

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import CreateProjectModal from '../components/CreateProjectModal';
 import { useNavigate } from 'react-router-dom';
-import { ProjectAPI } from '../API/ProjectAPI';
+import { getAllProjectsByUserId, addProject } from '../API/ProjectAPI';
 
 const Projects = ({ onLogout }) => {
     const [projects, setProjects] = useState([]);
@@ -12,7 +12,7 @@ const Projects = ({ onLogout }) => {
     useEffect(() => {
         const fetchProjects = async () => {
             try {
-                const data = await ProjectAPI.getAllProjects();
+                const data = await getAllProjectsByUserId();
                 setProjects(Array.isArray(data) ? data : (data.projects || []));
             } catch (error) {
                 setProjects([]);
@@ -44,7 +44,7 @@ const Projects = ({ onLogout }) => {
 
     const handleProjectCreate = async (projectData) => {
         try {
-            const created = await ProjectAPI.createProject(projectData);
+            const created = await addProject(projectData);
             setProjects(prev => [...prev, created]);
         } catch (error) {
             // Optionally handle error

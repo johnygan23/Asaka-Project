@@ -4,7 +4,6 @@ import Layout from '../components/Layout';
 import { FiEdit2, FiCalendar, FiCheck, FiPaperclip, FiDownload, FiX } from 'react-icons/fi';
 import TaskDetailsModal from '../components/TaskDetailsModal';
 import FilesView from '../components/FilesView';
-import { TaskAPI } from '../API/ProjectAPI';
 
 const columns = [
   { key: 'recent', title: 'Recently assigned' },
@@ -36,38 +35,16 @@ const Tasks = ({ onLogout, projects = [] }) => {
   const [selectedTask, setSelectedTask] = useState(null);
   const [activeTab, setActiveTab] = useState('board'); // 'board', 'dashboard', 'files'
 
-  useEffect(() => {
-    const fetchTasks = async () => {
-      setLoading(true);
-      try {
-        const data = await TaskAPI.getAllTasks();
-        // Ensure tasks is always an array
-        setTasks(Array.isArray(data) ? data : (data.tasks || []));
-      } catch (error) {
-        setTasks([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchTasks();
-  }, []);
+  // Remove useEffect that fetches tasks from API
+  // useEffect(() => { ... });
 
-  const addTask = async (taskData) => {
-    try {
-      const created = await TaskAPI.createTask(taskData);
-      setTasks(prev => [...prev, created]);
-    } catch (error) {
-      // Optionally handle error
-    }
+  // Use only local state for addTask and updateTask
+  const addTask = (taskData) => {
+    setTasks(prev => [...prev, taskData]);
   };
 
-  const updateTask = async (id, updates) => {
-    try {
-      const updated = await TaskAPI.updateTask(id, updates);
-      setTasks(prev => prev.map(t => t.id === id ? { ...t, ...updated } : t));
-    } catch (error) {
-      // Optionally handle error
-    }
+  const updateTask = (id, updates) => {
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
   };
 
   const columnTasks = getColumnTasks(tasks);
