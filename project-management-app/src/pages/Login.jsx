@@ -3,11 +3,11 @@ import AsanaLogo from "../assets/asana-logo.svg";
 import { Link } from "react-router-dom";
 
 const Login = ({ onLogin }) => {
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-    // role: ''
-  });
+    const [formData, setFormData] = useState({
+        email: '',
+        password: '',
+        // role: ''
+    });
 
   const [errors, setErrors] = useState({});
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -45,10 +45,10 @@ const Login = ({ onLogin }) => {
       newErrors.password = "Password must be at least 6 characters long";
     }
 
-    // Role validation
-    // if (!formData.role) {
-    //     newErrors.role = 'Please select your role';
-    // }
+        // Role validation
+        // if (!formData.role) {
+        //     newErrors.role = 'Please select your role';
+        // }
 
     return newErrors;
   };
@@ -60,15 +60,15 @@ const Login = ({ onLogin }) => {
     const formErrors = validateForm();
     setErrors(formErrors);
 
-    // If no errors, proceed with login
-    if (Object.keys(formErrors).length === 0) {
-      console.log("Login attempt:", formData);
-      // Handle successful login logic here
-      if (onLogin) {
-        onLogin(formData);
-      }
-    }
-  };
+        // If no errors, proceed with login
+        if (Object.keys(formErrors).length === 0) {
+            console.log('Login attempt:', formData);
+            // Handle successful login logic here
+            if (onLogin) {
+                onLogin(formData);
+            }
+        }
+    };
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-white via-gray-50 to-gray-100 font-sans">
@@ -214,63 +214,26 @@ const Login = ({ onLogin }) => {
               )}
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="password"
-                className="text-sm font-medium text-gray-700"
-              >
-                Password
-              </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="Enter your password"
-                className={`px-4 py-3 border-2 rounded-lg text-sm transition-all duration-200 bg-white/80 focus:outline-none focus:bg-white placeholder-gray-400 ${
-                  isSubmitted && errors.password
-                    ? "border-red-400 focus:border-red-400 focus:ring-2 focus:ring-red-100"
-                    : "border-gray-200 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100"
-                }`}
-              />
-              {isSubmitted && errors.password && (
-                <span className="text-red-500 text-xs mt-1">
-                  {errors.password}
-                </span>
-              )}
-            </div>
-
-            {/* <div className="flex flex-col gap-1.5">
-                            <label htmlFor="role" className="text-sm font-medium text-gray-700">
-                                Role
+                        <div className="flex flex-col gap-1.5">
+                            <label htmlFor="password" className="text-sm font-medium text-gray-700">
+                                Password
                             </label>
-                            <select
-                                id="role"
-                                name="role"
-                                value={formData.role}
+                            <input
+                                type="password"
+                                id="password"
+                                name="password"
+                                value={formData.password}
                                 onChange={handleChange}
-                                className={`px-4 py-3 border-2 rounded-lg text-sm transition-all duration-200 bg-white/80 focus:outline-none focus:bg-white appearance-none cursor-pointer ${isSubmitted && errors.role
+                                placeholder="Enter your password"
+                                className={`px-4 py-3 border-2 rounded-lg text-sm transition-all duration-200 bg-white/80 focus:outline-none focus:bg-white placeholder-gray-400 ${isSubmitted && errors.password
                                     ? 'border-red-400 focus:border-red-400 focus:ring-2 focus:ring-red-100'
                                     : 'border-gray-200 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100'
-                                    } ${!formData.role ? 'text-gray-400' : 'text-gray-900'}`}
-                                style={{
-                                    backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e")`,
-                                    backgroundPosition: 'right 0.75rem center',
-                                    backgroundRepeat: 'no-repeat',
-                                    backgroundSize: '1.5em 1.5em',
-                                    paddingRight: '2.5rem'
-                                }}
-                            >
-                                <option value="" disabled>Select your role</option>
-                                <option value="member">Member</option>
-                                <option value="project-manager">Project Manager</option>
-                                <option value="admin">Admin</option>
-                            </select>
-                            {isSubmitted && errors.role && (
-                                <span className="text-red-500 text-xs mt-1">{errors.role}</span>
+                                    }`}
+                            />
+                            {isSubmitted && errors.password && (
+                                <span className="text-red-500 text-xs mt-1">{errors.password}</span>
                             )}
-                        </div> */}
+                        </div>
 
             <div className="flex justify-between items-center my-2">
               <label className="flex items-center gap-2 text-sm text-gray-500 cursor-pointer">
