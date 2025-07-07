@@ -8,11 +8,11 @@ export const getAllProjects = async () => {
 };
 
 export const getAllProjectsByUserId = async () => {
-  var userId = getUserId();
+  var userId = await getUserId();
   if (userId == null) {
     return;
   }
-  return await requestWrapper(`${PROJECT_API_URL}/${userId}`, "GET");
+  return await requestWrapper(`${PROJECT_API_URL}/assigned-projects/${userId}`, "GET");
 };
 
 export const getProjectById = async (projectId) => {

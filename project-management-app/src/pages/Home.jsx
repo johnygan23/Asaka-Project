@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import Layout from '../components/Layout';
+import * as AuthAPI from '../API/AuthAPI';
+import * as Utils from '../Utils/Utils'
 
 const statusColors = {
-    Active: 'bg-green-100 text-green-700',
-    Paused: 'bg-yellow-100 text-yellow-700',
-    Completed: 'bg-gray-200 text-gray-700',
+    active: 'bg-green-100 text-green-700',
+    paused: 'bg-yellow-100 text-yellow-700',
+    completed: 'bg-gray-200 text-gray-700',
 };
 
 const getToday = () => {
@@ -48,21 +50,21 @@ function DonutChart({ completed, incomplete, completedColor, incompleteColor, te
     );
 }
 
-const Home = ({ onLogout, projects }) => {
+const Home = ({ onLogout, projects, projectTasks, userInfo }) => {
     const [tab, setTab] = useState('upcoming');
-    const userName = 'Wong';
-    const [tasks, setTasks] = useState([]);
+    const userName = Utils.capitalizeEachWord(userInfo.username);
+    const [tasks, setTasks] = useState(projectTasks);
     const [notepad, setNotepad] = useState('');
 
     const totalTasks = tasks.length;
-    const completedTasks = tasks.filter(t => t.completed).length;
+    const completedTasks = tasks.filter(t => t.status === "completed").length;
     const incompleteTasks = totalTasks - completedTasks;
-    const upcomingTasks = tasks.filter(t => t.status === 'upcoming').length;
+    const upcomingTasks = tasks.filter(t => Date.parse(t.startDate) > Date.now()).length;
 
     const filteredTasks = tasks.filter(t => {
-        if (tab === 'completed') return t.completed;
-        if (tab === 'overdue') return t.status === 'overdue' && !t.completed;
-        if (tab === 'upcoming') return t.status === 'upcoming' && !t.completed;
+        if (tab === 'completed') return t.status === "completed";
+        if (tab === 'overdue') return (Date.parse(t.endDate) < Date.now()) && t.status !== "completed";
+        if (tab === 'upcoming') return (Date.parse(t.startDate) > Date.now()) && t.status !== "completed";
         return false;
     });
 
@@ -72,7 +74,7 @@ const Home = ({ onLogout, projects }) => {
         ));
     };
 
-    const projectCompleted = projects.filter(p => p.status === 'Completed').length;
+    const projectCompleted = projects.filter(p => p.status === 'completed').length;
     return (
         <Layout onLogout={onLogout} projects={projects}>
             <main className="flex-1 flex flex-col bg-gray-50 min-h-screen">
@@ -139,7 +141,7 @@ const Home = ({ onLogout, projects }) => {
                                     {filteredTasks.map(task => (
                                         <li key={task.id} className="flex items-center justify-between bg-gray-100 rounded-lg px-5 py-4 group transition">
                                             {/* Complete Icon */}
-                                            <button
+                                            {/* <button
                                                 onClick={() => toggleComplete(task.id)}
                                                 className={`w-6 h-6 flex items-center justify-center rounded-full border-2 transition-colors duration-200 mr-4 ${task.completed ? 'border-green-400 bg-green-400' : 'border-gray-300 bg-white group-hover:border-cyan-400'}`}
                                                 aria-label={task.completed ? 'Mark as incomplete' : 'Mark as complete'}
@@ -149,13 +151,13 @@ const Home = ({ onLogout, projects }) => {
                                                 ) : (
                                                     <span className="block w-3 h-3 rounded-full bg-transparent"></span>
                                                 )}
-                                            </button>
+                                            </button> */}
                                             {/* Task Name */}
-                                            <span className={`flex-1 text-lg ${task.completed ? 'line-through text-gray-400' : 'text-gray-900'}`}>{task.title}</span>
+                                            <span className={`flex-1 text-lg ${(task.status === "completed") ? 'line-through text-gray-400' : 'text-gray-900'}`}>{task.title}</span>
                                             {/* Priority */}
                                             <span className={`px-2 py-1 rounded text-xs font-semibold ml-4 ${priorityColors[task.priority]}`}>{task.priority}</span>
                                             {/* Due Date */}
-                                            <span className="text-gray-500 text-sm ml-6 min-w-[100px] text-right">{task.due}</span>
+                                            <span className="text-gray-500 text-sm ml-6 min-w-[100px] text-right">{task.endDate.slice(0, 10)}</span>
                                         </li>
                                     ))}
                                 </ul>

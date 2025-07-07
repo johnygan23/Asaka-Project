@@ -9,15 +9,18 @@ import ProjectDetails from './pages/ProjectDetails';
 import Inbox from './pages/Inbox';
 import Team from './pages/Team';
 import './App.css';
-import { loginAsync, isTokenValid, refreshTokens } from './API/AuthAPI';
+import { loginAsync, signupAsync, isTokenValid, refreshTokens, getUserId } from './API/AuthAPI';
 import * as ProjectAPI from './API/ProjectAPI';
 import { getAllUsers } from './API/UserAPI';
+import * as ProjectTaskAPI from './API/ProjectTaskAPI';
 
 function App() {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [projects, setProjects] = useState([]);
-  const [users, setUsers] = useState([]);
+  const [projectTasks, setProjectTasks] = useState([]);
+  const [users, setUsers] = useState([]); // Store the logged in user's info like id, name, email, and role
+  const [userInfo, setUserInfo] = useState({});
   const [loadingProjects, setLoadingProjects] = useState(true);
 
   useEffect(() => {
@@ -36,13 +39,26 @@ function App() {
           return;
         }
       }
-      setIsAuthenticated(true);
       // If valid, begin fetching data
-      await fetchProjects();
-      await fetchUsers();
+      await fetchDataAndSetUp();
     }
     runApp();
   }, [])
+
+  const fetchDataAndSetUp = async () => {
+    var result = isTokenValid();
+    if(!result.isValid) return null;
+    setUserInfo({
+      userId: result.userId,
+      username: result.username,
+      email: result.email,
+      role: result.role,
+    });
+    setIsAuthenticated(true);
+    await fetchProjects();
+    await fetchUsers();
+    await fetchProjectTasks();
+  }
 
   const fetchUsers = async () => {
     try {
@@ -51,40 +67,45 @@ function App() {
       console.log("Retrieved users: ", data);
       setUsers(Array.isArray(data) ? data : (data.users || []));
     } catch (error) {
-      
       setUsers([]);
     }
   }
 
-    const fetchProjects = async () => {
+  const fetchProjects = async () => {
     setLoadingProjects(true);
     try {
-      const response = await ProjectAPI.getAllProjects();
+      const response = await ProjectAPI.getAllProjectsByUserId();
       const data = response.data;
-      console.log("Retrieved projects: ", data);
+      console.log("Retrieved assigned projects: ", data);
       setProjects(Array.isArray(data) ? data : (data.projects || []));
     } catch (error) {
-      console.error('Error fetching projects:', error);
+      console.error('Error fetching assigned projects:', error);
       setProjects([]);
     } finally {
       setLoadingProjects(false);
     }
   };
 
+  const fetchProjectTasks = async () => {
+    try {
+      const response = await ProjectTaskAPI.getAllTasksByUserId();
+      const data = response.data;
+      console.log("Retrieved assigned project tasks: ", data);
+      setProjectTasks(Array.isArray(data) ? data : (data.projectTasks || []));
+    } catch (error) {
+      console.error('Error fetching assigned project tasks:', error);
+    } 
+  };
+
   const handleLogin = async (formData) => {
     try {
       const response = await loginAsync({ ...formData });
       localStorage.setItem("tokens", JSON.stringify(response.data));
-      setIsAuthenticated(true);
       console.log("Successful login:", response.data);
-
-      await fetchProjects();
-      await fetchUsers();
-
+      await fetchDataAndSetUp();
     } catch (error) {
       // Do something here like show a login fail message to user
       console.error("Error logging user in: ", error);
-      throw error;
     }
   }
   
@@ -95,7 +116,6 @@ function App() {
       navigate('/login');
     } catch (error){
       console.error("Error registering user: ", error);
-      throw error;
     }
   }
 
@@ -136,7 +156,7 @@ function App() {
           path="/home"
           element={
             <ProtectedRoute>
-              <Home onLogout={handleLogout} projects={projects} />
+              <Home onLogout={handleLogout} projects={projects} projectTasks={projectTasks} userInfo={userInfo} />
             </ProtectedRoute>
           }
         />
