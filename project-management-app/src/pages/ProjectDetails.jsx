@@ -22,7 +22,7 @@ const ProjectDetails = ({ onLogout, projects = [], onUpdateProject }) => {
 
     // Get all files from tasks in this project
     const projectFiles = tasks.reduce((files, task) => {
-        if (task.projectId === Number(projectId) && task.attachments && task.attachments.length > 0) {
+        if ((task.projectId === projectId || task.projectId === Number(projectId)) && task.attachments && task.attachments.length > 0) {
             return [...files, ...task.attachments.map(file => ({ ...file, taskTitle: task.title, taskId: task.id }))];
         }
         return files;
