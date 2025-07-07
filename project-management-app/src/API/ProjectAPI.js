@@ -19,6 +19,12 @@ export const getProjectById = async (projectId) => {
   return await requestWrapper(`${PROJECT_API_URL}/${projectId}`, "GET");
 };
 
+export const getOwnedProjects = async (userId) => {
+  const response = await fetch(`${PROJECT_API_URL}/owned-projects/${userId}`);
+  if (!response.ok) throw new Error("Failed to fetch owned projects");
+  return await response.json();
+};
+
 export const addProject = async (data) => {
   var userId = await getUserId();
   if (userId == null) {
