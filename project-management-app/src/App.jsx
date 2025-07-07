@@ -8,14 +8,37 @@ import Signup from './pages/Signup';
 import ProjectDetails from './pages/ProjectDetails';
 import Inbox from './pages/Inbox';
 import Team from './pages/Team';
-import { loginAsync } from './API/AuthAPI';
 import './App.css';
+import { loginAsync, isTokenValid, refreshTokens } from './API/AuthAPI';
 import { getAllProjects } from './API/ProjectAPI';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [projects, setProjects] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
+
+  useEffect(() => {
+    async function runApp () {
+      // When the app loads, check if token is valid
+      var result = isTokenValid();
+      // No 'tokens' key found in localStorage
+      if (result === null) return;
+      if(!result.isValid) {
+        try{
+          await refreshTokens(result.userId, result.refreshToken);
+          console.log("Successfully refreshed token.");
+        } catch (e){
+          setIsAuthenticated(false);
+          console.log("Error in refreshing tokens.", e);
+          return;
+        }
+      }
+      setIsAuthenticated(true);
+      // If valid, fetch project
+      await fetchProjects();
+    }
+    runApp();
+  }, [])
 
   const fetchProjects = async () => {
     setLoadingProjects(true);
@@ -47,6 +70,7 @@ function App() {
   }
 
   const handleLogout = () => {
+    localStorage.removeItem("tokens");
     setIsAuthenticated(false);
   };
 
