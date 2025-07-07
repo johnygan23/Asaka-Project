@@ -9,8 +9,8 @@ import ProjectDetails from './pages/ProjectDetails';
 import Inbox from './pages/Inbox';
 import Team from './pages/Team';
 import './App.css';
-import { loginAsync, signupAsync, isTokenValid, refreshTokens } from './API/AuthAPI';
-import { getAllProjects } from './API/ProjectAPI';
+import { loginAsync, isTokenValid, refreshTokens } from './API/AuthAPI';
+import * as ProjectAPI from './API/ProjectAPI';
 import { getAllUsers } from './API/UserAPI';
 
 function App() {
@@ -56,19 +56,20 @@ function App() {
     }
   }
 
-  const fetchProjects = async () => {
+    const fetchProjects = async () => {
     setLoadingProjects(true);
     try {
-      const response = await getAllProjects();
+      const response = await ProjectAPI.getAllProjects();
       const data = response.data;
       console.log("Retrieved projects: ", data);
       setProjects(Array.isArray(data) ? data : (data.projects || []));
     } catch (error) {
+      console.error('Error fetching projects:', error);
       setProjects([]);
     } finally {
       setLoadingProjects(false);
     }
-  }
+  };
 
   const handleLogin = async (formData) => {
     try {

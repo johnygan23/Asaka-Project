@@ -11,6 +11,7 @@ import { inboxMessages } from '../data/inbox';
 const Sidebar = ({ onLogout, projects = [] }) => {
     const [projectsOpen, setProjectsOpen] = useState(false);
     const unreadCount = inboxMessages.filter(m => !m.isRead).length;
+    
     // Function to get NavLink classes with active state
     const getLinkClasses = ({ isActive }) => {
         return `flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-colors duration-200 ${isActive
