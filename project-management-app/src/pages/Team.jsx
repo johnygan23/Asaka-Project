@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import Layout from '../components/Layout';
-import { teamMembers } from '../data/team';
+import { removeHyphen, capitalizeEachWord } from '../Utils/Utils';
 
-const Team = ({ onLogout, projects = [] }) => {
+const Team = ({ onLogout, projects = [], teamMembers = [] }) => {
     const [members] = useState(teamMembers);
     const [selectedMember, setSelectedMember] = useState(null);
     const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
@@ -74,11 +74,12 @@ const Team = ({ onLogout, projects = [] }) => {
                                             <div className="flex items-start justify-between mb-4">
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-lg font-medium text-gray-700">
-                                                        {member.avatar}
+                                                        {String(member.username).charAt(0).toUpperCase()}
                                                     </div>
                                                     <div>
-                                                        <h3 className="text-lg font-semibold text-gray-900">{member.name}</h3>
-                                                        <p className="text-sm text-gray-600">{member.role}</p>
+                                                        <h3 className="text-lg font-semibold text-gray-900">{member.username}</h3>
+                                                        <p className="text-sm text-gray-600">
+                                                          {capitalizeEachWord(removeHyphen(member.role))}</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -91,15 +92,15 @@ const Team = ({ onLogout, projects = [] }) => {
                                                     <span className="truncate">{member.email}</span>
                                                 </div>
                                                 
-                                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                                {/* <div className="flex items-center gap-2 text-sm text-gray-600">
                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                                     </svg>
                                                     <span className="truncate">{member.location}</span>
-                                                </div>
+                                                </div> */}
 
-                                                <div className="flex flex-wrap gap-1">
+                                                {/* <div className="flex flex-wrap gap-1">
                                                     {member.skills.slice(0, 3).map((skill, index) => (
                                                         <span key={index} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
                                                             {skill}
@@ -110,7 +111,7 @@ const Team = ({ onLogout, projects = [] }) => {
                                                             +{member.skills.length - 3} more
                                                         </span>
                                                     )}
-                                                </div>
+                                                </div> */}
                                             </div>
                                         </div>
                                     ))}
@@ -126,19 +127,19 @@ const Team = ({ onLogout, projects = [] }) => {
                                             >
                                                 <div className="flex items-center gap-4">
                                                     <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-lg font-medium text-gray-700">
-                                                        {member.avatar}
+                                                        {String(member.username).charAt(0).toUpperCase()}
                                                     </div>
                                                     
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-center justify-between">
                                                             <div>
-                                                                <h3 className="text-lg font-semibold text-gray-900">{member.name}</h3>
-                                                                <p className="text-sm text-gray-600">{member.role}</p>
+                                                                <h3 className="text-lg font-semibold text-gray-900">{member.username}</h3>
+                                                                <p className="text-sm text-gray-600">{capitalizeEachWord(removeHyphen(member.role))}</p>
                                                             </div>
-                                                            <div className="text-right">
+                                                            {/* <div className="text-right">
                                                                 <p className="text-sm text-gray-600">{member.department}</p>
                                                                 <p className="text-xs text-gray-500">{member.location}</p>
-                                                            </div>
+                                                            </div> */}
                                                         </div>
                                                     </div>
                                                 </div>
@@ -168,11 +169,11 @@ const Team = ({ onLogout, projects = [] }) => {
                                 <div className="p-6">
                                     <div className="flex items-center gap-4 mb-6">
                                         <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center text-xl font-medium text-gray-700">
-                                            {selectedMember.avatar}
+                                            {String(selectedMember.username).charAt(0).toUpperCase()}
                                         </div>
                                         <div>
-                                            <h4 className="text-xl font-semibold text-gray-900">{selectedMember.name}</h4>
-                                            <p className="text-gray-600">{selectedMember.role}</p>
+                                            <h4 className="text-xl font-semibold text-gray-900">{selectedMember.username}</h4>
+                                            <p className="text-gray-600">{capitalizeEachWord(removeHyphen(selectedMember.role))}</p>
                                         </div>
                                     </div>
 
@@ -186,7 +187,7 @@ const Team = ({ onLogout, projects = [] }) => {
                                                     </svg>
                                                     <span className="text-gray-700">{selectedMember.email}</span>
                                                 </div>
-                                                <div className="flex items-center gap-3 text-sm">
+                                                {/* <div className="flex items-center gap-3 text-sm">
                                                     <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                                                     </svg>
@@ -198,11 +199,11 @@ const Team = ({ onLogout, projects = [] }) => {
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                                     </svg>
                                                     <span className="text-gray-700">{selectedMember.location}</span>
-                                                </div>
+                                                </div> */}
                                             </div>
                                         </div>
 
-                                        <div>
+                                        {/* <div>
                                             <h5 className="text-sm font-medium text-gray-900 mb-3">Projects</h5>
                                             <div className="flex flex-wrap gap-2">
                                                 {selectedMember.projects.map((project, index) => (
@@ -211,7 +212,7 @@ const Team = ({ onLogout, projects = [] }) => {
                                                     </span>
                                                 ))}
                                             </div>
-                                        </div>
+                                        </div> */}
 
 
 
