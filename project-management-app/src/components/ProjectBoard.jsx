@@ -5,7 +5,7 @@ import { people } from '../data/people';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { FiCalendar, FiUser } from 'react-icons/fi';
 import TaskDetailsModal from './TaskDetailsModal';
-import * as TaskAPI from '../API/TaskAPI';
+import * as ProjectTaskAPI from '../API/ProjectTaskAPI';
 
 const statusColumns = [
     { id: taskStatuses.TODO, title: 'To Do' },
@@ -46,9 +46,10 @@ const ProjectBoard = ({ projectId, projects = [] }) => {
             
             setLoading(true);
             try {
-                const response = await TaskAPI.getTasksByProjectId(projectId);
+                const response = await ProjectTaskAPI.getAllTasks();
                 const data = response?.data || response;
-                setTasks(Array.isArray(data) ? data : []);
+                const filtered = data.filter(task => String(task.projectId) == String(projectId));
+                setTasks(filtered);
             } catch (error) {
                 console.error('Error fetching project tasks:', error);
                 setTasks([]);
@@ -62,7 +63,7 @@ const ProjectBoard = ({ projectId, projects = [] }) => {
     // Add task to API and local state
     const addTask = async (taskData) => {
         try {
-            const response = await TaskAPI.addTask(taskData);
+            const response = await ProjectTaskAPI.addTask(taskData);
             const newTask = response?.data || response;
             setTasks(prev => [...prev, newTask]);
             // Also update context for consistency
@@ -79,7 +80,7 @@ const ProjectBoard = ({ projectId, projects = [] }) => {
     // Update task in API and local state
     const updateTask = async (id, updates) => {
         try {
-            await TaskAPI.updateTask(id, updates);
+            await ProjectTaskAPI.updateTask(id, updates);
             setTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
             // Also update context for consistency
             contextUpdateTask(id, updates);

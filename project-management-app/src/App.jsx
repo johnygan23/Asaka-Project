@@ -11,6 +11,7 @@ import Team from './pages/Team';
 import './App.css';
 import { loginAsync, isTokenValid, refreshTokens } from './API/AuthAPI';
 import * as ProjectAPI from './API/ProjectAPI';
+import { getAllUsers } from './API/UserAPI';
 
 function App() {
   const navigate = useNavigate();
@@ -58,7 +59,7 @@ function App() {
     const fetchProjects = async () => {
     setLoadingProjects(true);
     try {
-      const response = await getAllProjects();
+      const response = await ProjectAPI.getAllProjects();
       const data = response.data;
       console.log("Retrieved projects: ", data);
       setProjects(Array.isArray(data) ? data : (data.projects || []));

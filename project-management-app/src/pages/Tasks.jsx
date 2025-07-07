@@ -4,7 +4,7 @@ import Layout from '../components/Layout';
 import { FiEdit2, FiCalendar, FiCheck, FiPaperclip, FiDownload, FiX } from 'react-icons/fi';
 import TaskDetailsModal from '../components/TaskDetailsModal';
 import FilesView from '../components/FilesView';
-import * as TaskAPI from '../API/TaskAPI';
+import * as ProjectTaskAPI from '../API/ProjectTaskAPI';
 
 const columns = [
   { key: 'todo', title: 'To Do' },
@@ -39,7 +39,7 @@ const Tasks = ({ onLogout, projects = [] }) => {
     const fetchTasks = async () => {
       setLoading(true);
       try {
-        const response = await TaskAPI.getAllTasks();
+        const response = await ProjectTaskAPI.getAllTasks();
         const data = response?.data || response;
         setTasks(Array.isArray(data) ? data : []);
       } catch (error) {
@@ -55,7 +55,7 @@ const Tasks = ({ onLogout, projects = [] }) => {
   // Add task to API and local state
   const addTask = async (taskData) => {
     try {
-      const response = await TaskAPI.addTask(taskData);
+      const response = await ProjectTaskAPI.addTask(taskData);
       const newTask = response?.data || response;
       setTasks(prev => [...prev, newTask]);
     } catch (error) {
@@ -68,7 +68,7 @@ const Tasks = ({ onLogout, projects = [] }) => {
   // Update task in API and local state
   const updateTask = async (id, updates) => {
     try {
-      await TaskAPI.updateTask(id, updates);
+      await ProjectTaskAPI.updateTask(id, updates);
       setTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
     } catch (error) {
       console.error('Error updating task:', error);
