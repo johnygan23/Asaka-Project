@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Projects from './pages/Projects';
 import Tasks from './pages/Tasks';
@@ -9,10 +9,11 @@ import ProjectDetails from './pages/ProjectDetails';
 import Inbox from './pages/Inbox';
 import Team from './pages/Team';
 import './App.css';
-import { loginAsync, isTokenValid, refreshTokens } from './API/AuthAPI';
+import { loginAsync, signupAsync, isTokenValid, refreshTokens } from './API/AuthAPI';
 import { getAllProjects } from './API/ProjectAPI';
 
 function App() {
+  const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [projects, setProjects] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
@@ -56,18 +57,30 @@ function App() {
 
   const handleLogin = async (formData) => {
     try {
-      let tokens = await loginAsync({ ...formData });
-      localStorage.setItem("tokens", JSON.stringify(tokens));
+      const response = await loginAsync({ ...formData });
+      localStorage.setItem("tokens", JSON.stringify(response.data));
       setIsAuthenticated(true);
+      console.log("Successful login:", response.data);
 
       await fetchProjects();
 
     } catch (error) {
       // Do something here like show a login fail message to user
-      console.log("Login failed.");
+      console.error("Error logging user in: ", error);
       throw error;
     }
   }
+  
+  const handleSignup = async ({ username, email, password, role }) => {
+    try {
+      const response = await signupAsync({ username, email, password, role });
+      // Redirect user to login page after successful signup
+      navigate('/login');
+    } catch (error){
+      console.error("Error registering user: ", error);
+      throw error;
+    }
+  }
 
   const handleLogout = () => {
     localStorage.removeItem("tokens");
@@ -100,7 +113,7 @@ function App() {
         {/* Protected Routes */}
         <Route
           path="/signup"
-          element={<Signup />}
+          element={<Signup onSignup={handleSignup} />}
         />
         <Route
           path="/home"
