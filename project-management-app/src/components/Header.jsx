@@ -1,6 +1,5 @@
 // src/components/Header.jsx
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import AsanaLogo from "../assets/asana-logo.svg";
 import ProjectsIcon from "../assets/folders-svgrepo-com.svg";
 import TasksIcon from "../assets/to-do-svgrepo-com.svg";
@@ -19,7 +18,6 @@ const Header = ({ onToggleSidebar, onLogout }) => {
   const [email, setEmail] = useState("");
   const createDropdownRef = useRef(null);
   const profileDropdownRef = useRef(null);
-  const navigate = useNavigate();
 
   const handleLogoClick = async () => {
     var message = await authenticatedOnlyAsync();
@@ -54,7 +52,7 @@ const Header = ({ onToggleSidebar, onLogout }) => {
 
   const handleCreateProject = () => {
     setShowCreateDropdown(false);
-    navigate("/projects");
+    // Dispatch an event that pages/components can listen for to show the Create Project modal
     window.dispatchEvent(new CustomEvent("openCreateProject"));
   };
 

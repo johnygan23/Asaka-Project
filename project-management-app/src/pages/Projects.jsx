@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import CreateProjectModal from '../components/CreateProjectModal';
 import { useNavigate } from 'react-router-dom';
-import { getAllProjects } from '../API/ProjectAPI';
+import { getAllProjects, addProject } from '../API/ProjectAPI';
 
 const Projects = ({ onLogout }) => {
     const [projects, setProjects] = useState([]);
@@ -22,18 +22,18 @@ const Projects = ({ onLogout }) => {
     //     fetchProjects();
     // });
 
-    // // Listen for custom event from Header
-    // useEffect(() => {
-    //     const handleOpenCreateProject = () => {
-    //         setShowCreateModal(true);
-    //     };
+    // Listen for custom event from Header to open the Create Project modal
+    useEffect(() => {
+        const handleOpenCreateProject = () => {
+            setShowCreateModal(true);
+        };
 
-    //     window.addEventListener('openCreateProject', handleOpenCreateProject);
+        window.addEventListener('openCreateProject', handleOpenCreateProject);
 
-    //     return () => {
-    //         window.removeEventListener('openCreateProject', handleOpenCreateProject);
-    //     };
-    // }, []);
+        return () => {
+            window.removeEventListener('openCreateProject', handleOpenCreateProject);
+        };
+    }, []);
 
     const handleCreateClick = () => {
         setShowCreateModal(true);
