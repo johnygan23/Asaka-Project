@@ -10,7 +10,7 @@ import Inbox from './pages/Inbox';
 import Team from './pages/Team';
 import './App.css';
 import { loginAsync, isTokenValid, refreshTokens } from './API/AuthAPI';
-import { getAllProjects } from './API/ProjectAPI';
+import * as ProjectAPI from './API/ProjectAPI';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);

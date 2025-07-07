@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTasks } from '../context/TaskContext';
 import { taskStatuses, taskPriorities } from '../data/task';
 import { people } from '../data/people';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { FiCalendar, FiUser } from 'react-icons/fi';
 import TaskDetailsModal from './TaskDetailsModal';
+import * as TaskAPI from '../API/TaskAPI';
 
 const statusColumns = [
     { id: taskStatuses.TODO, title: 'To Do' },
@@ -29,18 +30,71 @@ const getPriorityStyles = (priorityObj) => {
 };
 
 const ProjectBoard = ({ projectId, projects = [] }) => {
-    const { tasks, addTask, updateTask } = useTasks();
+    const { tasks: contextTasks, addTask: contextAddTask, updateTask: contextUpdateTask } = useTasks();
+    const [tasks, setTasks] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [inlineAddStatus, setInlineAddStatus] = useState(null); // which column is adding
     const [inlineTask, setInlineTask] = useState({ title: '', priority: 'medium', status: taskStatuses.TODO, dueDate: '', assignee: '' });
     const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [selectedTask, setSelectedTask] = useState(null);
 
-    const handleInlineAdd = (colId) => {
+    // Fetch tasks for this project
+    useEffect(() => {
+        const fetchProjectTasks = async () => {
+            if (!projectId) return;
+            
+            setLoading(true);
+            try {
+                const response = await TaskAPI.getTasksByProjectId(projectId);
+                const data = response?.data || response;
+                setTasks(Array.isArray(data) ? data : []);
+            } catch (error) {
+                console.error('Error fetching project tasks:', error);
+                setTasks([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchProjectTasks();
+    }, [projectId]);
+
+    // Add task to API and local state
+    const addTask = async (taskData) => {
+        try {
+            const response = await TaskAPI.addTask(taskData);
+            const newTask = response?.data || response;
+            setTasks(prev => [...prev, newTask]);
+            // Also update context for consistency
+            contextAddTask(newTask);
+        } catch (error) {
+            console.error('Error adding task:', error);
+            // Fallback to local state only
+            const fallbackTask = { ...taskData, id: Date.now().toString() };
+            setTasks(prev => [...prev, fallbackTask]);
+            contextAddTask(fallbackTask);
+        }
+    };
+
+    // Update task in API and local state
+    const updateTask = async (id, updates) => {
+        try {
+            await TaskAPI.updateTask(id, updates);
+            setTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+            // Also update context for consistency
+            contextUpdateTask(id, updates);
+        } catch (error) {
+            console.error('Error updating task:', error);
+            // Fallback to local state only
+            setTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+            contextUpdateTask(id, updates);
+        }
+    };
+
+    const handleInlineAdd = async (colId) => {
         if (inlineTask.title.trim()) {
             const assigneeObj = people.find(p => p.id === Number(inlineTask.assignee));
-            addTask({
-                id: Date.now().toString(),
+            await addTask({
                 title: inlineTask.title,
                 priority: taskPriorities[inlineTask.priority.toUpperCase()],
                 status: colId,
@@ -56,18 +110,26 @@ const ProjectBoard = ({ projectId, projects = [] }) => {
         }
     };
 
-    const onDragEnd = (result) => {
+    const onDragEnd = async (result) => {
         const { destination, source, draggableId } = result;
         if (!destination) return;
         const destStatus = destination.droppableId;
         const sourceStatus = source.droppableId;
         if (destStatus !== sourceStatus) {
-            updateTask(draggableId, { status: destStatus });
+            await updateTask(draggableId, { status: destStatus });
         }
     };
 
     // Find project name for modal
     const project = Array.isArray(projects) ? projects.find(p => p.id === projectId) : undefined;
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <div className="text-gray-600 text-lg">Loading project tasks...</div>
+            </div>
+        );
+    }
 
     return (
         <>
