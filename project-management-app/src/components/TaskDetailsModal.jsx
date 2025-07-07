@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { people } from '../data/people';
 import { taskPriorities, taskStatuses } from '../data/task';
 import { FiPaperclip, FiX, FiDownload, FiFile } from 'react-icons/fi';
+import { uploadAttachment } from '../API/AttachmentAPI';
 
 const statusColors = {
   completed: 'bg-green-700 text-white',
@@ -110,22 +111,34 @@ function TaskDetailsModal({ task, onClose, onSave, projects }) {
   };
 
   // File handling functions
-  const handleFileSelect = (event) => {
+  const handleFileSelect = async (event) => {
     const files = Array.from(event.target.files);
-    const newAttachments = files.map(file => ({
-      id: Date.now() + Math.random(),
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      uploadedAt: new Date().toISOString(),
-      url: URL.createObjectURL(file) // In a real app, this would be uploaded to a server
-    }));
-    
-    setEditTask(prev => ({
-      ...prev,
-      attachments: [...(prev.attachments || []), ...newAttachments]
-    }));
-    
+    if (files.length === 0) return;
+  
+    const file = files[0]; // Only handle the first file
+  
+    try {
+      // Upload to backend
+      const uploaded = await uploadAttachment("BBBBBBB1-BBBB-BBBB-BBBB-BBBBBBBBBBBB", file);
+  
+      setEditTask(prev => ({
+        ...prev,
+        attachments: [
+          ...(prev.attachments || []),
+          {
+            id: uploaded.id,
+            name: uploaded.attachmentName,
+            size: file.size,
+            type: file.type,
+            uploadedAt: new Date().toISOString(),
+            // Add more fields if needed from backend response
+          }
+        ]
+      }));
+    } catch (err) {
+      alert(`Failed to upload ${file.name}`);
+    }
+  
     // Reset file input
     event.target.value = '';
   };
