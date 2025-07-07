@@ -3,7 +3,7 @@ import AsanaLogo from '../assets/asana-logo.svg';
 
 const Signup = ({ onSignup }) => {
     const [formData, setFormData] = useState({
-        name: '',
+        username: '',
         email: '',
         password: '',
         confirmPassword: '',
@@ -29,8 +29,8 @@ const Signup = ({ onSignup }) => {
 
     const validateForm = () => {
         const newErrors = {};
-        if (!formData.name) {
-            newErrors.name = 'Name is required';
+        if (!formData.username) {
+            newErrors.username = 'Username is required';
         }
         if (!formData.email) {
             newErrors.email = 'Email is required';
@@ -61,7 +61,7 @@ const Signup = ({ onSignup }) => {
         if (Object.keys(formErrors).length === 0) {
             console.log('Signup attempt:', formData);
             if (onSignup) {
-                onSignup();
+                onSignup(formData);
             }
         }
     };
@@ -113,20 +113,20 @@ const Signup = ({ onSignup }) => {
                     </div>
                     <form onSubmit={handleSubmit} className="flex flex-col gap-5">
                         <div className="flex flex-col gap-1.5">
-                            <label htmlFor="name" className="text-sm font-medium text-gray-700">Full Name</label>
+                            <label htmlFor="name" className="text-sm font-medium text-gray-700">Username</label>
                             <input
-                                id="name"
-                                name="name"
-                                value={formData.name}
+                                id="username"
+                                name="username"
+                                value={formData.username}
                                 onChange={handleChange}
-                                placeholder="Enter your full name"
-                                className={`px-4 py-3 border-2 rounded-lg text-sm transition-all duration-200 bg-white/80 focus:outline-none focus:bg-white placeholder-gray-400 ${isSubmitted && errors.name
+                                placeholder="Enter your username"
+                                className={`px-4 py-3 border-2 rounded-lg text-sm transition-all duration-200 bg-white/80 focus:outline-none focus:bg-white placeholder-gray-400 ${isSubmitted && errors.username
                                     ? 'border-red-400 focus:border-red-400 focus:ring-2 focus:ring-red-100'
                                     : 'border-gray-200 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100'
                                     }`}
                             />
-                            {isSubmitted && errors.name && (
-                                <span className="text-red-500 text-xs mt-1">{errors.name}</span>
+                            {isSubmitted && errors.username && (
+                                <span className="text-red-500 text-xs mt-1">{errors.username}</span>
                             )}
                         </div>
                         <div className="flex flex-col gap-1.5">
@@ -202,9 +202,9 @@ const Signup = ({ onSignup }) => {
                                 }}
                             >
                                 <option value="" disabled>Select your role</option>
-                                <option value="member">Member</option>
+                                <option value="contributor">Contributor</option>
                                 <option value="project-manager">Project Manager</option>
-                                <option value="admin">Admin</option>
+                                {/* <option value="admin">Admin</option> */}
                             </select>
                             {isSubmitted && errors.role && (
                                 <span className="text-red-500 text-xs mt-1">{errors.role}</span>
