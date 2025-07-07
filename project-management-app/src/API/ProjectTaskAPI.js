@@ -55,4 +55,4 @@ export const updateProjectTask = async (projectTaskId, data) => {
     return await requestWrapper(`${PROJECT_TASK_API_URL}/${projectTaskId}`, "PUT", {
         ...data,
     });
-}
+} 
