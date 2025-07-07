@@ -1,7 +1,8 @@
 export const taskStatuses = {
     TODO: 'todo',
     IN_PROGRESS: 'in_progress',
-    COMPLETED: 'completed'
+    COMPLETED: 'completed',
+    ARCHIVED: 'archived'
 };
 
 export const taskPriorities = {
