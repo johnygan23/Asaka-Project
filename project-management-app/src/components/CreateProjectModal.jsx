@@ -62,7 +62,7 @@ const CreateProjectModal = ({ onClose, onCreate, projectsCount = 0 }) => {
                             id="title"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
-                            placeholder="My awesome project"
+                            placeholder="My project"
                             className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors duration-200"
                             required
                         />
@@ -77,7 +77,7 @@ const CreateProjectModal = ({ onClose, onCreate, projectsCount = 0 }) => {
                             id="description"
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            placeholder="Short project description..."
+                            placeholder="Project description..."
                             rows={3}
                             className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors duration-200"
                         />
