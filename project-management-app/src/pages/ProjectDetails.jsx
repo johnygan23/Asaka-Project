@@ -195,8 +195,8 @@ const ProjectDetails = ({ onLogout, projects = [], onUpdateProject }) => {
             {activeTab === 'overview' && currentProject && <ProjectOverview project={currentProject} />}
             {activeTab === 'board' && <ProjectBoard projectId={projectId} />}
             {activeTab === 'files' && (
-                <FilesView 
-                    files={projectFiles} 
+                <FilesView
+                    files={projectFiles}
                     onFileClick={handleFileClick}
                 />
             )}

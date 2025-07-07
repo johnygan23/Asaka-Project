@@ -125,11 +125,10 @@ const Inbox = ({ onLogout, projects = [] }) => {
                                     <button
                                         key={filter.id}
                                         onClick={() => setSelectedFilter(filter.id)}
-                                        className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors duration-200 ${
-                                            selectedFilter === filter.id
-                                                ? 'bg-cyan-100 text-cyan-700'
-                                                : 'bg-white text-gray-600 hover:bg-gray-50'
-                                        }`}
+                                        className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-colors duration-200 ${selectedFilter === filter.id
+                                            ? 'bg-cyan-100 text-cyan-700'
+                                            : 'bg-white text-gray-600 hover:bg-gray-50'
+                                            }`}
                                     >
                                         {filter.label}
                                         <span className="ml-2 px-2 py-0.5 bg-gray-200 text-gray-700 rounded-full text-xs">
@@ -171,9 +170,8 @@ const Inbox = ({ onLogout, projects = [] }) => {
                                                         markAsRead(message.id);
                                                     }
                                                 }}
-                                                className={`p-6 cursor-pointer transition-colors duration-200 hover:bg-gray-50 ${
-                                                    selectedMessage?.id === message.id ? 'bg-cyan-50 border-r-4 border-cyan-500' : ''
-                                                } ${!message.isRead ? 'bg-blue-50' : ''}`}
+                                                className={`p-6 cursor-pointer transition-colors duration-200 hover:bg-gray-50 ${selectedMessage?.id === message.id ? 'bg-cyan-50 border-r-4 border-cyan-500' : ''
+                                                    } ${!message.isRead ? 'bg-blue-50' : ''}`}
                                             >
                                                 <div className="flex items-start gap-4">
                                                     {/* Avatar */}
@@ -195,9 +193,8 @@ const Inbox = ({ onLogout, projects = [] }) => {
                                                                         {formatTimestamp(message.timestamp)}
                                                                     </span>
                                                                 </div>
-                                                                <h3 className={`text-base font-medium mb-1 ${
-                                                                    !message.isRead ? 'text-gray-900' : 'text-gray-700'
-                                                                }`}>
+                                                                <h3 className={`text-base font-medium mb-1 ${!message.isRead ? 'text-gray-900' : 'text-gray-700'
+                                                                    }`}>
                                                                     {message.title}
                                                                 </h3>
                                                                 <p className="text-sm text-gray-600 line-clamp-2 mb-2">

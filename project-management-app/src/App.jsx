@@ -24,16 +24,16 @@ function App() {
   const [loadingProjects, setLoadingProjects] = useState(true);
 
   useEffect(() => {
-    async function runApp () {
+    async function runApp() {
       // When the app loads, check if token is valid
       var result = isTokenValid();
       // No 'tokens' key found in localStorage
       if (result === null) return;
-      if(!result.isValid) {
-        try{
+      if (!result.isValid) {
+        try {
           await refreshTokens(result.userId, result.refreshToken);
           console.log("Successfully refreshed token.");
-        } catch (e){
+        } catch (e) {
           setIsAuthenticated(false);
           console.log("Error in refreshing tokens.", e);
           return;
@@ -47,7 +47,7 @@ function App() {
 
   const fetchDataAndSetUp = async () => {
     var result = isTokenValid();
-    if(!result.isValid) return null;
+    if (!result.isValid) return null;
     setUserInfo({
       userId: result.userId,
       username: result.username,
@@ -94,7 +94,7 @@ function App() {
       setProjectTasks(Array.isArray(data) ? data : (data.projectTasks || []));
     } catch (error) {
       console.error('Error fetching assigned project tasks:', error);
-    } 
+    }
   };
 
   const handleLogin = async (formData) => {
@@ -106,15 +106,15 @@ function App() {
     } catch (error) {
       // Do something here like show a login fail message to user
       console.error("Error logging user in: ", error);
-    }
-  }
-  
+    }
+  }
+
   const handleSignup = async ({ username, email, password, role }) => {
     try {
       const response = await signupAsync({ username, email, password, role });
       // Redirect user to login page after successful signup
       navigate('/login');
-    } catch (error){
+    } catch (error) {
       console.error("Error registering user: ", error);
     }
   }
@@ -210,5 +210,4 @@ function App() {
     </div>
   );
 }
-
 export default App;

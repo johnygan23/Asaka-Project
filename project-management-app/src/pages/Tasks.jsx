@@ -113,7 +113,7 @@ const Tasks = ({ onLogout, projects = [] }) => {
   const getProjectName = (task) => {
     if (task.projectId) {
       const project = projects.find(p => p.id === task.projectId);
-              return project ? (project.name || project.title) : '';
+      return project ? (project.name || project.title) : '';
     }
     return '';
   };
@@ -244,19 +244,19 @@ const Tasks = ({ onLogout, projects = [] }) => {
       {/* Board Tabs and Options */}
       <div className="flex items-center gap-6 mb-4">
         <div className="flex gap-2">
-          <button 
+          <button
             className={`px-2 pb-1 font-medium ${activeTab === 'board' ? 'text-black/80 border-b-2 border-blue-500' : 'text-black/40 hover:text-white/80'}`}
             onClick={() => setActiveTab('board')}
           >
             Board
           </button>
-          <button 
+          <button
             className={`px-2 pb-1 font-medium ${activeTab === 'dashboard' ? 'text-black/80 border-b-2 border-blue-500' : 'text-black/40 hover:text-white/80'}`}
             onClick={() => setActiveTab('dashboard')}
           >
             Dashboard
           </button>
-          <button 
+          <button
             className={`px-2 pb-1 font-medium ${activeTab === 'files' ? 'text-black/80 border-b-2 border-blue-500' : 'text-black/40 hover:text-white/80'}`}
             onClick={() => setActiveTab('files')}
           >
@@ -265,7 +265,7 @@ const Tasks = ({ onLogout, projects = [] }) => {
         </div>
         <div className="flex-1" />
       </div>
-      
+
       {/* Content based on active tab */}
       {activeTab === 'board' && renderBoardView()}
       {activeTab === 'dashboard' && (
@@ -275,12 +275,12 @@ const Tasks = ({ onLogout, projects = [] }) => {
         </div>
       )}
       {activeTab === 'files' && (
-        <FilesView 
-          files={allFiles} 
+        <FilesView
+          files={allFiles}
           onFileClick={handleFileClick}
         />
       )}
-      
+
       {selectedTask && (
         <TaskDetailsModal
           task={selectedTask}

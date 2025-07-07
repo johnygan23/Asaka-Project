@@ -25,9 +25,8 @@ const Team = ({ onLogout, projects = [], teamMembers = [] }) => {
                                 <div className="flex bg-gray-100 rounded-lg p-1">
                                     <button
                                         onClick={() => setViewMode('grid')}
-                                        className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                                            viewMode === 'grid' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-                                        }`}
+                                        className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${viewMode === 'grid' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                                            }`}
                                     >
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -35,9 +34,8 @@ const Team = ({ onLogout, projects = [], teamMembers = [] }) => {
                                     </button>
                                     <button
                                         onClick={() => setViewMode('list')}
-                                        className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-                                            viewMode === 'list' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-                                        }`}
+                                        className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${viewMode === 'list' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+                                            }`}
                                     >
                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
@@ -79,11 +77,11 @@ const Team = ({ onLogout, projects = [], teamMembers = [] }) => {
                                                     <div>
                                                         <h3 className="text-lg font-semibold text-gray-900">{member.username}</h3>
                                                         <p className="text-sm text-gray-600">
-                                                          {capitalizeEachWord(removeHyphen(member.role))}</p>
+                                                            {capitalizeEachWord(removeHyphen(member.role))}</p>
                                                     </div>
                                                 </div>
                                             </div>
-                                            
+
                                             <div className="space-y-3">
                                                 <div className="flex items-center gap-2 text-sm text-gray-600">
                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -91,7 +89,7 @@ const Team = ({ onLogout, projects = [], teamMembers = [] }) => {
                                                     </svg>
                                                     <span className="truncate">{member.email}</span>
                                                 </div>
-                                                
+
                                                 {/* <div className="flex items-center gap-2 text-sm text-gray-600">
                                                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -129,7 +127,7 @@ const Team = ({ onLogout, projects = [], teamMembers = [] }) => {
                                                     <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-lg font-medium text-gray-700">
                                                         {String(member.username).charAt(0).toUpperCase()}
                                                     </div>
-                                                    
+
                                                     <div className="flex-1 min-w-0">
                                                         <div className="flex items-center justify-between">
                                                             <div>
