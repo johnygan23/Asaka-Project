@@ -5,11 +5,19 @@ const AUTH_API_URL = "http://localhost:5179/api/Auth";
 
 export const loginAsync = async (formData) => {
   try {
-    const response = await axios.post(`${AUTH_API_URL}/login`, formData);
-    console.log("Successful login:", response.data);
-    return response.data;
+    return await axios.post(`${AUTH_API_URL}/login`, formData);
   } catch (error) {
-    console.error("Error logging user in", error);
+    throw error;
+  }
+};
+
+export const signupAsync = async (formData) => {
+  try {
+    const response = await axios.post(`${AUTH_API_URL}/register`, formData);
+    console.log("Successful registration:", response.data);
+    return response;
+  } catch (error) {
+    console.error("Error registering user: ", error);
     throw error;
   }
 };
@@ -29,32 +37,12 @@ export const authenticatedOnlyAsync = async () => {
 };
 
 export const requestWrapper = async (url, method = "GET", data = {}) => {
-  // Return null if tokens are not saved in localStorage
-  var tokens = JSON.parse(localStorage.getItem("tokens"));
-  if (tokens === null) {
-    return null;
-  }
-
-  // Destructure tokens and decode access token
-  var { accessToken, refreshToken } = tokens;
-  var claims = jwtDecode(accessToken);
-  var userId =
-    claims[
-      "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
-    ];
+  var { isValid, accessToken, refreshToken, userId } = isTokenValid();
 
   // Refresh tokens when access token is expired
-  if (claims.exp < Date.now() / 1000) {
+  if (!isValid) {
     try {
-      var response = await axios.post(`${AUTH_API_URL}/refresh-tokens`, {
-        userId,
-        refreshToken,
-      });
-
-      // Save refreshed tokens into localStorage
-      localStorage.setItem("tokens", JSON.stringify(response.data));
-      accessToken = response.data.accessToken;
-      console.log("Successful refreshed tokens:", response.data);
+      accessToken = await refreshTokens(userId, refreshToken);
     } catch (e) {
       throw e;
     }
@@ -81,6 +69,14 @@ export const requestWrapper = async (url, method = "GET", data = {}) => {
 };
 
 export const getUserId = async () => {
+  var result = isTokenValid();
+  if (result === null) return;
+  if (result.isValid){
+    return requestWrapper.userId;
+  }
+};
+
+export const isTokenValid = () => {
   // Return null if tokens are not saved in localStorage
   var tokens = JSON.parse(localStorage.getItem("tokens"));
   if (tokens === null) {
@@ -94,6 +90,19 @@ export const getUserId = async () => {
     claims[
       "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
     ];
+  var isValid = claims.exp > Date.now() / 1000;
 
-  return userId;
-};
+  return { isValid, accessToken, refreshToken, userId };
+}
+
+export const refreshTokens = async (userId, refreshToken) =>  {
+  var response = await axios.post(`${AUTH_API_URL}/refresh-tokens`, {
+    userId,
+    refreshToken,
+  });
+
+  // Save refreshed tokens into localStorage
+  localStorage.setItem("tokens", JSON.stringify(response.data));
+  console.log("Successful refreshed tokens:", response.data);
+  return response.data.accessToken;
+}
