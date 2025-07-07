@@ -11,11 +11,13 @@ import Team from './pages/Team';
 import './App.css';
 import { loginAsync, signupAsync, isTokenValid, refreshTokens } from './API/AuthAPI';
 import { getAllProjects } from './API/ProjectAPI';
+import { getAllUsers } from './API/UserAPI';
 
 function App() {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [projects, setProjects] = useState([]);
+  const [users, setUsers] = useState([]);
   const [loadingProjects, setLoadingProjects] = useState(true);
 
   useEffect(() => {
@@ -35,18 +37,31 @@ function App() {
         }
       }
       setIsAuthenticated(true);
-      // If valid, fetch project
+      // If valid, begin fetching data
       await fetchProjects();
+      await fetchUsers();
     }
     runApp();
   }, [])
+
+  const fetchUsers = async () => {
+    try {
+      const response = await getAllUsers();
+      const data = response.data;
+      console.log("Retrieved users: ", data);
+      setUsers(Array.isArray(data) ? data : (data.users || []));
+    } catch (error) {
+      
+      setUsers([]);
+    }
+  }
 
   const fetchProjects = async () => {
     setLoadingProjects(true);
     try {
       const response = await getAllProjects();
       const data = response.data;
-      console.log(data);
+      console.log("Retrieved projects: ", data);
       setProjects(Array.isArray(data) ? data : (data.projects || []));
     } catch (error) {
       setProjects([]);
@@ -63,6 +78,7 @@ function App() {
       console.log("Successful login:", response.data);
 
       await fetchProjects();
+      await fetchUsers();
 
     } catch (error) {
       // Do something here like show a login fail message to user
@@ -160,7 +176,7 @@ function App() {
           path="/teams"
           element={
             <ProtectedRoute>
-              <Team onLogout={handleLogout} projects={projects} />
+              <Team onLogout={handleLogout} projects={projects} teamMembers={users} />
             </ProtectedRoute>
           }
         />
