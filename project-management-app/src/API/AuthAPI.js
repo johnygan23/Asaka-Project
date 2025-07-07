@@ -5,11 +5,19 @@ const AUTH_API_URL = "http://localhost:5179/api/Auth";
 
 export const loginAsync = async (formData) => {
   try {
-    const response = await axios.post(`${AUTH_API_URL}/login`, formData);
-    console.log("Successful login:", response.data);
-    return response.data;
+    return await axios.post(`${AUTH_API_URL}/login`, formData);
   } catch (error) {
-    console.error("Error logging user in", error);
+    throw error;
+  }
+};
+
+export const signupAsync = async (formData) => {
+  try {
+    const response = await axios.post(`${AUTH_API_URL}/register`, formData);
+    console.log("Successful registration:", response.data);
+    return response;
+  } catch (error) {
+    console.error("Error registering user: ", error);
     throw error;
   }
 };
