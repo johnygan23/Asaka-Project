@@ -20,7 +20,7 @@ export const getProjectById = async (projectId) => {
 };
 
 export const addProject = async (data) => {
-  var userId = getUserId();
+  var userId = await getUserId();
   if (userId == null) {
     return;
   }

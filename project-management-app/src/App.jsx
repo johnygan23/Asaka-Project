@@ -13,6 +13,7 @@ import { loginAsync, signupAsync, isTokenValid, refreshTokens, getUserId } from 
 import * as ProjectAPI from './API/ProjectAPI';
 import { getAllUsers } from './API/UserAPI';
 import * as ProjectTaskAPI from './API/ProjectTaskAPI';
+import CreateProjectModal from './components/CreateProjectModal';
 
 function App() {
   const navigate = useNavigate();
@@ -22,6 +23,8 @@ function App() {
   const [users, setUsers] = useState([]); // Store the logged in user's info like id, name, email, and role
   const [userInfo, setUserInfo] = useState({});
   const [loadingProjects, setLoadingProjects] = useState(true);
+  // State to control the global Create Project modal
+  const [showCreateProjectModal, setShowCreateProjectModal] = useState(false);
 
   useEffect(() => {
     async function runApp() {
@@ -44,6 +47,15 @@ function App() {
     }
     runApp();
   }, [])
+
+  // Global listener for opening the Create Project modal from anywhere
+  useEffect(() => {
+    const openCreateProjectModal = () => setShowCreateProjectModal(true);
+    window.addEventListener('openCreateProject', openCreateProjectModal);
+    return () => {
+      window.removeEventListener('openCreateProject', openCreateProjectModal);
+    };
+  }, []);
 
   const fetchDataAndSetUp = async () => {
     var result = isTokenValid();
@@ -130,6 +142,18 @@ function App() {
     );
   };
 
+  // Handle creation of a new project from the modal
+  const handleProjectCreate = async (projectData) => {
+    try {
+      const created = await ProjectAPI.addProject(projectData);
+      // Ensure projects list is updated immediately in state
+      setProjects((prev) => [...prev, created]);
+    } catch (error) {
+      console.error('Error creating project:', error);
+    }
+    setShowCreateProjectModal(false);
+  };
+
   // Protected Route Wrapper Component
   const ProtectedRoute = ({ children }) => {
     return isAuthenticated ? children : <Navigate to="/login" replace />;
@@ -207,6 +231,14 @@ function App() {
           element={<Navigate to={isAuthenticated ? "/home" : "/login"} replace />}
         />
       </Routes>
+      {/* Global Create Project Modal */}
+      {showCreateProjectModal && (
+        <CreateProjectModal
+          onClose={() => setShowCreateProjectModal(false)}
+          onCreate={handleProjectCreate}
+          projectsCount={projects.length}
+        />
+      )}
     </div>
   );
 }

@@ -3,25 +3,38 @@ import { useState } from 'react';
 import { projectColors } from '../data/colors';
 
 const CreateProjectModal = ({ onClose, onCreate, projectsCount = 0 }) => {
-    const [projectName, setProjectName] = useState('');
+    // Form state
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [priority, setPriority] = useState('Medium');
+    const [status, setStatus] = useState('NotStarted');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (projectName.trim()) {
+        if (title.trim() && startDate && endDate) {
             // Select the next color in order based on existing projects length
             const colorIndex = projectsCount % projectColors.length;
             const selectedColor = projectColors[colorIndex];
 
             onCreate({
-                name: projectName,
-                color: selectedColor
+                title,
+                description,
+                priority,
+                status,
+                startDate,
+                endDate,
+                color: selectedColor,
             });
         }
     };
 
     return (
-        <div className="fixed inset-0 bg-white flex items-center justify-center z-50">
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        // Semi-transparent backdrop
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            {/* Dialog */}
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
                 {/* Header */}
                 <div className="border-b border-gray-200 px-6 py-4">
                     <div className="flex items-center">
@@ -39,20 +52,100 @@ const CreateProjectModal = ({ onClose, onCreate, projectsCount = 0 }) => {
 
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="p-6">
-                    {/* Project Name */}
-                    <div className="mb-6">
-                        <label htmlFor="projectName" className="block text-sm font-medium text-gray-700 mb-2">
-                            Project name
+                    {/* Title */}
+                    <div className="mb-4">
+                        <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
+                            Project title
                         </label>
                         <input
                             type="text"
-                            id="projectName"
-                            value={projectName}
-                            onChange={(e) => setProjectName(e.target.value)}
-                            placeholder="my project"
+                            id="title"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            placeholder="My awesome project"
                             className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors duration-200"
                             required
                         />
+                    </div>
+
+                    {/* Description */}
+                    <div className="mb-4">
+                        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
+                            Description
+                        </label>
+                        <textarea
+                            id="description"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            placeholder="Short project description..."
+                            rows={3}
+                            className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors duration-200"
+                        />
+                    </div>
+
+                    {/* Priority & Status */}
+                    <div className="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label htmlFor="priority" className="block text-sm font-medium text-gray-700 mb-2">
+                                Priority
+                            </label>
+                            <select
+                                id="priority"
+                                value={priority}
+                                onChange={(e) => setPriority(e.target.value)}
+                                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors duration-200"
+                            >
+                                <option value="Low">Low</option>
+                                <option value="Medium">Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
+                                Status
+                            </label>
+                            <select
+                                id="status"
+                                value={status}
+                                onChange={(e) => setStatus(e.target.value)}
+                                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors duration-200"
+                            >
+                                <option value="NotStarted">Not Started</option>
+                                <option value="Active">Active</option>
+                                <option value="Paused">Paused</option>
+                                <option value="Completed">Completed</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* Dates */}
+                    <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-2">
+                                Start date
+                            </label>
+                            <input
+                                type="date"
+                                id="startDate"
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors duration-200"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-2">
+                                End date
+                            </label>
+                            <input
+                                type="date"
+                                id="endDate"
+                                value={endDate}
+                                onChange={(e) => setEndDate(e.target.value)}
+                                className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors duration-200"
+                                required
+                            />
+                        </div>
                     </div>
 
                     {/* Continue Button */}

@@ -2,25 +2,28 @@ import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import CreateProjectModal from '../components/CreateProjectModal';
 import { useNavigate } from 'react-router-dom';
-import { getAllProjects, addProject } from '../API/ProjectAPI';
+import { getAllProjectsByUserId, addProject } from '../API/ProjectAPI';
 
 const Projects = ({ onLogout }) => {
     const [projects, setProjects] = useState([]);
     const [showCreateModal, setShowCreateModal] = useState(false);
     const navigate = useNavigate();
 
-    // useEffect(() => {
-    //     const fetchProjects = async () => {
-    //         try {
-    //             const response = await getAllProjects();
-    //             const data = response.data;
-    //             setProjects(Array.isArray(data) ? data : (data.projects || []));
-    //         } catch (error) {
-    //             setProjects([]);
-    //         }
-    //     };
-    //     fetchProjects();
-    // });
+    useEffect(() => {
+        const fetchProjects = async () => {
+            try {
+                const response = await getAllProjectsByUserId();
+                const data = response?.data ?? [];
+                // Some APIs wrap list inside property, handle gracefully
+                const list = Array.isArray(data) ? data : data.projects || [];
+                setProjects(list);
+            } catch (error) {
+                console.error('Failed to load projects', error);
+                setProjects([]);
+            }
+        };
+        fetchProjects();
+    }, []);
 
     // Listen for custom event from Header to open the Create Project modal
     useEffect(() => {
@@ -45,10 +48,14 @@ const Projects = ({ onLogout }) => {
 
     const handleProjectCreate = async (projectData) => {
         try {
-            const created = await addProject(projectData);
-            setProjects(prev => [...prev, created]);
+            await addProject(projectData);
+            // After successful creation, refresh list from server so sidebar stays in sync everywhere
+            const reload = await getAllProjectsByUserId();
+            const list = Array.isArray(reload?.data) ? reload.data : reload?.data?.projects || [];
+            setProjects(list);
         } catch (error) {
             // Optionally handle error
+            console.error("Error creating project", error);
         }
         setShowCreateModal(false);
     };
