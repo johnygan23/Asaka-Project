@@ -17,6 +17,12 @@ const Sidebar = ({ onLogout, projects = [] }) => {
 
     const unreadCount = inboxMessages.filter(m => !m.isRead).length;
 
+    // Filter projects so that archived ones are not shown in the sidebar
+    const filteredProjects = projects.filter(p => {
+        const status = (p.status || '').toLowerCase();
+        return status !== 'archived' && !p.archived;
+    });
+
     // Save to localStorage whenever projectsOpen changes
     useEffect(() => {
         localStorage.setItem('sidebarProjectsOpen', JSON.stringify(projectsOpen));
@@ -78,9 +84,9 @@ const Sidebar = ({ onLogout, projects = [] }) => {
                                 </svg>
                             </button>
                             {/* Project list */}
-                            {projectsOpen && projects.length > 0 && (
+                            {projectsOpen && filteredProjects.length > 0 && (
                                 <ul className="mt-1 pl-2 space-y-0.5">
-                                    {projects.map((project) => (
+                                    {filteredProjects.map((project) => (
                                         <li key={project.id}>
                                             <NavLink
                                                 to={`/projects/${project.id}`}
