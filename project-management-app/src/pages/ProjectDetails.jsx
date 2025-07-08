@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { projectColors } from '../data/colors';
 import Layout from '../components/Layout';
@@ -9,6 +9,7 @@ import { useTasks } from '../context/TaskContext';
 import OverviewIcon from '../assets/overview-svgrepo-com.svg';
 import BoardIcon from '../assets/board-svgrepo-com.svg';
 import FilesIcon from '../assets/folder-arrow-up-svgrepo-com.svg';
+
 
 const ProjectDetails = ({ onLogout, projects = [], onUpdateProject }) => {
     const { projectId } = useParams();

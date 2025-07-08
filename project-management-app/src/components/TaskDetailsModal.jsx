@@ -83,7 +83,6 @@ function TaskDetailsModal({ task, onClose, onSave, projects, onAddComment }) {
             subtasks: data.subtasks || [],
             attachments: attachments
           });
-          setEditTask({ ...data, subtasks: data.subtasks || [], attachments: data.attachments || [] });
           setTaskComments(Array.isArray(dataComment) ? dataComment : (dataComment.comments || []));
         }
       } catch (error) {
@@ -580,7 +579,7 @@ function TaskDetailsModal({ task, onClose, onSave, projects, onAddComment }) {
           Save
         </button>
       </div>
-      <style>{`
+      <style jsx>{`
         .animate-slide-in {
           transform: translateX(100%);
           animation: slideInDrawer 0.3s forwards;
