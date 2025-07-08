@@ -115,7 +115,7 @@ const Header = ({ onToggleSidebar, onLogout }) => {
           {/* Dropdown Menu */}
           {showCreateDropdown && (
             <div className="absolute top-full left-0 mt-2 w-42 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-              <button
+              {/* <button
                 onClick={() => setShowCreateDropdown(false)}
                 className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-3"
               >
@@ -125,7 +125,7 @@ const Header = ({ onToggleSidebar, onLogout }) => {
                   className="w-5 h-5 flex-shrink-0"
                 />
                 <span className="text-gray-700">Task</span>
-              </button>
+              </button> */}
 
               <button
                 onClick={handleCreateProject}
@@ -139,7 +139,7 @@ const Header = ({ onToggleSidebar, onLogout }) => {
                 <span className="text-gray-700">Project</span>
               </button>
 
-              <button
+              {/* <button
                 onClick={() => setShowCreateDropdown(false)}
                 className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-3"
               >
@@ -149,9 +149,9 @@ const Header = ({ onToggleSidebar, onLogout }) => {
                   className="w-5 h-5 flex-shrink-0"
                 />
                 <span className="text-gray-700">Message</span>
-              </button>
+              </button> */}
 
-              <button
+              {/* <button
                 onClick={() => setShowCreateDropdown(false)}
                 className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-3"
               >
@@ -161,11 +161,11 @@ const Header = ({ onToggleSidebar, onLogout }) => {
                   className="w-5 h-5 flex-shrink-0"
                 />
                 <span className="text-gray-700">Team</span>
-              </button>
+              </button> */}
 
-              <div className="border-t border-gray-200 my-2"></div>
+              {/* <div className="border-t border-gray-200 my-2"></div> */}
 
-              <button
+              {/* <button
                 onClick={() => setShowCreateDropdown(false)}
                 className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-3"
               >
@@ -175,7 +175,7 @@ const Header = ({ onToggleSidebar, onLogout }) => {
                   className="w-5 h-5 flex-shrink-0"
                 />
                 <span className="text-gray-700">Invite</span>
-              </button>
+              </button> */}
             </div>
           )}
         </div>
