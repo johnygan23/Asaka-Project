@@ -1,13 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { people } from '../data/people';
-import { taskPriorities, taskStatuses } from '../data/task';
 import { FiPaperclip, FiX, FiDownload, FiFile } from 'react-icons/fi';
+import * as ProjectTaskAPI from '../API/ProjectTaskAPI';
 
 const statusColors = {
   completed: 'bg-green-700 text-white',
-  'in progress': 'bg-yellow-600 text-white',
+  in_progress: 'bg-yellow-600 text-white',
   todo: 'bg-gray-600 text-white',
-  'at risk': 'bg-yellow-400 text-gray-900',
 };
 
 const priorityColors = {
@@ -19,6 +18,7 @@ const priorityColors = {
 
 function TaskDetailsModal({ task, onClose, onSave, projects }) {
   const [editTask, setEditTask] = useState({ ...task, subtasks: task.subtasks || [], attachments: task.attachments || [] });
+  const [loading, setLoading] = useState(false);
   const [assigneeQuery, setAssigneeQuery] = useState('');
   const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
   const [showSubtaskModal, setShowSubtaskModal] = useState(null); // subtask object or null
@@ -55,8 +55,25 @@ function TaskDetailsModal({ task, onClose, onSave, projects }) {
   }, [onClose]);
 
   useEffect(() => {
-    setEditTask({ ...task, subtasks: task.subtasks || [], attachments: task.attachments || [] });
-  }, [task]);
+    let isMounted = true;
+    const fetchTask = async () => {
+      if (!task?.id) return;
+      setLoading(true);
+      try {
+        const response = await ProjectTaskAPI.getTaskById(task.id);
+        const data = response?.data || response;
+        if (isMounted) {
+          setEditTask({ ...data, subtasks: data.subtasks || [], attachments: data.attachments || [] });
+        }
+      } catch (error) {
+        // Optionally handle error
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+    fetchTask();
+    return () => { isMounted = false; };
+  }, [task?.id]);
 
   // Filter people by query
   const filteredPeople = assigneeQuery
@@ -156,6 +173,14 @@ function TaskDetailsModal({ task, onClose, onSave, projects }) {
     return '📎';
   };
 
+  if (loading) {
+    return (
+      <div className="fixed top-0 right-0 h-full z-50 w-full max-w-xl bg-white text-black rounded-l-2xl shadow-2xl flex items-center justify-center">
+        <div className="text-lg text-gray-600">Loading task details...</div>
+      </div>
+    );
+  }
+
   return (
     <>
     <div className="fixed top-0 right-0 h-full z-50 w-full max-w-xl bg-white text-black rounded-l-2xl shadow-2xl transition-transform duration-300 ease-in-out animate-slide-in flex flex-col" style={{ minWidth: 380 }} ref={modalRef} tabIndex={-1}>
@@ -173,7 +198,11 @@ function TaskDetailsModal({ task, onClose, onSave, projects }) {
           {/* Status badge */}
           <div className="mb-2 mt-2">
             <span className="inline-block px-3 py-1 rounded-full bg-green-700 text-white text-xs font-semibold">
-              {editTask.completed ? 'Completed' : (editTask.statusLabel || editTask.status || 'To do')}
+              {editTask.completed ? 'Completed' :
+                (editTask.status === 'in_progress' ? 'In progress' :
+                  editTask.status === 'todo' ? 'To do' :
+                  editTask.status === 'completed' ? 'Completed' :
+                  editTask.status || 'To do')}
             </span>
           </div>
           {/* Title */}
@@ -251,8 +280,8 @@ function TaskDetailsModal({ task, onClose, onSave, projects }) {
                 <input
                   type="date"
                   className="bg-transparent text-black focus:outline-none"
-                  value={editTask.dueDate || ''}
-                  onChange={e => setEditTask(t => ({ ...t, dueDate: e.target.value }))}
+                  value={editTask.endDate ? editTask.endDate.slice(0, 10) : ''}
+                  onChange={e => setEditTask(t => ({ ...t, endDate: e.target.value }))}
                 />
               </div>
             </div>
@@ -289,14 +318,13 @@ function TaskDetailsModal({ task, onClose, onSave, projects }) {
                 <div className="flex items-center px-4 py-2">
                   <span className="mr-2">Status</span>
                   <select
-                    className={`rounded px-2 py-1 text-xs font-semibold ml-auto ${statusColors[editTask.status?.toLowerCase() || 'todo']}`}
+                    className={`rounded px-2 py-1 text-xs font-semibold ml-auto ${statusColors[editTask.status || 'todo']}`}
                     value={editTask.status}
                     onChange={e => setEditTask(t => ({ ...t, status: e.target.value }))}
                   >
                     <option value="todo">To do</option>
-                    <option value="in progress">In progress</option>
+                    <option value="in_progress">In progress</option>
                     <option value="completed">Completed</option>
-                    <option value="at risk">At risk</option>
                   </select>
                 </div>
               </div>
