@@ -9,7 +9,7 @@ import ProjectDetails from './pages/ProjectDetails';
 import Inbox from './pages/Inbox';
 import Team from './pages/Team';
 import './App.css';
-import { loginAsync, isTokenValid, refreshTokens } from './API/AuthAPI';
+import { loginAsync, signupAsync,isTokenValid, refreshTokens } from './API/AuthAPI';
 import * as ProjectAPI from './API/ProjectAPI';
 import { getAllUsers } from './API/UserAPI';
 

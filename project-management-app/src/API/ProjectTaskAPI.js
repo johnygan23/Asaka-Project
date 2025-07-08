@@ -31,10 +31,10 @@ export const getTaskById = async (taskId) => {
 };
 
 // --- CRUD (keep these if needed for add/update/delete) ---
-export const addTask = async (data) => {
+export const addTask = async (projectId, data) => {
   const userId = await getUserId();
   if (!userId) return;
-  return await requestWrapper(`${TASK_API_URL}/${userId}`, "POST", { ...data });
+  return await requestWrapper(`${TASK_API_URL}/${projectId}/${userId}`, "POST", { ...data });
 };
 
 export const updateTask = async (taskId, data) => {

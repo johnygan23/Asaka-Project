@@ -72,7 +72,7 @@ export const getUserId = async () => {
   var result = isTokenValid();
   if (result === null) return;
   if (result.isValid){
-    return requestWrapper.userId;
+    return result.userId;
   }
 };
 
