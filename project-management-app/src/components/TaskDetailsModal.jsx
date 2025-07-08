@@ -3,6 +3,7 @@ import { people } from '../data/people';
 import { FiPaperclip, FiX, FiDownload, FiFile } from 'react-icons/fi';
 import * as ProjectTaskAPI from '../API/ProjectTaskAPI';
 import * as CommentAPI from '../API/CommentAPI';
+import { getUserId } from '../API/AuthAPI';
 
 const statusColors = {
   completed: 'bg-green-700 text-white',
@@ -18,13 +19,19 @@ const priorityColors = {
 };
 
 function TaskDetailsModal({ task, onClose, onSave, projects, onAddComment }) {
-  const [editTask, setEditTask] = useState({ ...task, subtasks: task.subtasks || [], attachments: task.attachments || [] });
+  const [editTask, setEditTask] = useState({ ...task, attachments: task.attachments || [] });
   const [loading, setLoading] = useState(false);
   const [assigneeQuery, setAssigneeQuery] = useState('');
   const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
   const [showSubtaskModal, setShowSubtaskModal] = useState(null); // subtask object or null
-  const [addingSubtask, setAddingSubtask] = useState(false);
-  const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+  const [newSubtask, setNewSubtask] = useState({
+    title: '',
+    description: '',
+    startDate: '',
+    endDate: '',
+    priority: 'medium',
+    status: 'todo',
+  });
   const [selectedFiles, setSelectedFiles] = useState([]);
   const modalRef = useRef(null);
   const assigneeInputRef = useRef(null);
@@ -32,6 +39,12 @@ function TaskDetailsModal({ task, onClose, onSave, projects, onAddComment }) {
   const [newComment, setNewComment] = useState('');
   const [addingComment, setAddingComment] = useState(false);
   const [taskComments, setTaskComments] = useState([]);
+  const [addingSubtask, setAddingSubtask] = useState(false);
+  const [showSubtaskForm, setShowSubtaskForm] = useState(false);
+  const [subtaskError, setSubtaskError] = useState('');
+  const [allTasks, setAllTasks] = useState([]);
+  const [loadingTasks, setLoadingTasks] = useState(true);
+  const [subtasks, setSubtasks] = useState([]);
 
   // Debug logs
         console.log('TaskDetailsModal taskComments state:', taskComments);
@@ -62,27 +75,34 @@ function TaskDetailsModal({ task, onClose, onSave, projects, onAddComment }) {
   }, [onClose]);
 
   useEffect(() => {
-    let isMounted = true;
+    
     const fetchTaskandComment = async () => {
       if (!task?.id) return;
       setLoading(true);
+      setLoadingTasks(true);
       try {
         const response = await ProjectTaskAPI.getTaskById(task.id);
         const data = response?.data || response;
         const responseComment = await CommentAPI.getAllComments();
         const dataComment = responseComment?.data || responseComment;
-        if (isMounted) {
-          setEditTask({ ...data, subtasks: data.subtasks || [], attachments: data.attachments || [] });
+        const responseAllTasks = await ProjectTaskAPI.getAllTasks();
+        const dataAllTasks = responseAllTasks?.data || responseAllTasks;
+        
+          console.log('Fetched task data:', data);
+          setEditTask({ ...data, attachments: data.attachments || [] });
           setTaskComments(Array.isArray(dataComment) ? dataComment : (dataComment.comments || []));
-        }
+          setAllTasks(Array.isArray(dataAllTasks) ? dataAllTasks : []);
+          setSubtasks(dataAllTasks.filter(t => t.nestedLevel === 1 && t.parentId === task.id));
+
       } catch (error) {
         // Optionally handle error
       } finally {
-        if (isMounted) setLoading(false);
+        setLoading(false);
+        setLoadingTasks(false);
       }
     };
     fetchTaskandComment();
-    return () => { isMounted = false; };
+    // return () => { isMounted = false; };
   }, [task?.id]);
 
   // Filter people by query
@@ -99,42 +119,57 @@ function TaskDetailsModal({ task, onClose, onSave, projects, onAddComment }) {
   };
 
   // Subtask logic
-  const handleAddSubtask = () => {
-    if (newSubtaskTitle.trim()) {
-      setEditTask(t => ({
-        ...t,
-        subtasks: [
-          ...t.subtasks,
-          {
-            id: Date.now().toString(),
-            title: newSubtaskTitle,
-            completed: false,
-            subtasks: [],
-          },
-        ],
-      }));
-      setNewSubtaskTitle('');
+  const handleAddSubtask = async () => {
+    if (!newSubtask.title.trim()) return;
+    setAddingSubtask(true);
+    setSubtaskError('');
+    try {
+      console.log('About to call addSubtask', task.id, newSubtask);
+      const userId = await getUserId();
+      const response = await ProjectTaskAPI.addSubtask(task.id, userId, {...newSubtask});
+      console.log('addSubtask response:', response);
+      const createdSubtask = response.data || response;
+      // setEditTask(t => ({
+      //   ...t,
+      //   subtasks: [
+      //     ...t.subtasks,
+      //     createdSubtask,
+      //   ],
+      // }));
+      setNewSubtask({
+        title: '',
+        description: '',
+        startDate: '',
+        endDate: '',
+        priority: 'medium',
+        status: 'todo',
+      });
+      setShowSubtaskForm(false);
+    } catch (error) {
+      console.log('Subtask creation error:', error);
+      setSubtaskError('Failed to add subtask. Please try again.');
+    } finally {
       setAddingSubtask(false);
     }
   };
 
-  const handleToggleSubtask = (subId) => {
-    setEditTask(t => ({
-      ...t,
-      subtasks: t.subtasks.map(st =>
-        st.id === subId ? { ...st, completed: !st.completed } : st
-      ),
-    }));
-  };
+  // const handleToggleSubtask = (subId) => {
+  //   setEditTask(t => ({
+  //     ...t,
+  //     subtasks: t.subtasks.map(st =>
+  //       st.id === subId ? { ...st, completed: !st.completed } : st
+  //     ),
+  //   }));
+  // };
 
-  const handleUpdateSubtask = (subId, updated) => {
-    setEditTask(t => ({
-      ...t,
-      subtasks: t.subtasks.map(st =>
-        st.id === subId ? { ...st, ...updated } : st
-      ),
-    }));
-  };
+  // const handleUpdateSubtask = (subId, updated) => {
+  //   setEditTask(t => ({
+  //     ...t,
+  //     subtasks: t.subtasks.map(st =>
+  //       st.id === subId ? { ...st, ...updated } : st
+  //     ),
+  //   }));
+  // };
 
   // File handling functions
   const handleFileSelect = (event) => {
@@ -410,55 +445,95 @@ function TaskDetailsModal({ task, onClose, onSave, projects, onAddComment }) {
           <div className="mb-6">
             <div className="text-sm text-gray-500 mb-2">Subtasks</div>
             <div className="divide-y divide-gray-200">
-              {editTask.subtasks && editTask.subtasks.map(subtask => (
-                <div key={subtask.id} className="flex items-center gap-2 py-2 cursor-pointer group" onClick={() => setShowSubtaskModal(subtask)}>
-                  <button
-                    className={`w-6 h-6 rounded-full border flex items-center justify-center ${subtask.completed ? 'bg-green-100 border-green-400' : 'bg-white border-gray-300'}`}
-                    onClick={e => { e.stopPropagation(); handleToggleSubtask(subtask.id); }}
-                    aria-label={subtask.completed ? 'Mark as incomplete' : 'Mark as complete'}
-                  >
-                    {subtask.completed && (
-                      <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                    )}
-                  </button>
-                  <span className={`flex-1 ${subtask.completed ? 'line-through text-gray-400' : 'text-black'}`}>{subtask.title}</span>
-                </div>
-              ))}
+              {loadingTasks ? (
+                <div className="text-gray-400 py-2">Loading subtasks...</div>
+              ) : (
+                subtasks.map(subtask => (
+                  <div key={subtask.id} className="flex items-center gap-2 py-2">
+                    <span className={`flex-1 ${subtask.status === 'completed' ? 'line-through text-gray-400' : 'text-black'}`}>{subtask.title}</span>
+                  </div>
+                ))
+              )}
             </div>
-            {addingSubtask ? (
-              <div className="flex items-center gap-2 mt-2">
-                <input
-                  type="text"
-                  className="flex-1 bg-gray-100 rounded px-3 py-2 text-black border border-gray-300 focus:outline-none"
-                  placeholder="Subtask name"
-                  value={newSubtaskTitle}
-                  onChange={e => setNewSubtaskTitle(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter') handleAddSubtask();
-                    if (e.key === 'Escape') { setAddingSubtask(false); setNewSubtaskTitle(''); }
-                  }}
-                  autoFocus
-                />
-                <button
-                  className="px-3 py-2 bg-cyan-500 text-white rounded hover:bg-cyan-600"
-                  onClick={handleAddSubtask}
-                >
-                  Add
-                </button>
-                <button
-                  className="px-3 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-                  onClick={() => { setAddingSubtask(false); setNewSubtaskTitle(''); }}
-                >
-                  Cancel
-                </button>
-              </div>
-            ) : (
+            {/* Add Subtask Button and Form BELOW the list (if you want to keep it) */}
+            {!showSubtaskForm && (
               <button
                 className="mt-2 px-3 py-2 border border-gray-400 rounded text-sm text-black hover:bg-gray-100 flex items-center gap-2"
-                onClick={() => setAddingSubtask(true)}
+                onClick={() => setShowSubtaskForm(true)}
               >
-                <span className="text-lg">+</span> Add subtask
+                <span className="text-lg">+</span> Add Subtask
               </button>
+            )}
+            {showSubtaskForm && (
+              <div className="mt-2 p-3 bg-gray-50 rounded border">
+                <div className="flex flex-col gap-2">
+                  <input
+                    type="text"
+                    className="border rounded px-2 py-1"
+                    placeholder="Subtask title"
+                    value={newSubtask.title}
+                    onChange={e => setNewSubtask(s => ({ ...s, title: e.target.value }))}
+                  />
+                  <textarea
+                    className="border rounded px-2 py-1"
+                    placeholder="Description"
+                    value={newSubtask.description}
+                    onChange={e => setNewSubtask(s => ({ ...s, description: e.target.value }))}
+                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="date"
+                      className="border rounded px-2 py-1 flex-1"
+                      value={newSubtask.startDate}
+                      onChange={e => setNewSubtask(s => ({ ...s, startDate: e.target.value }))}
+                    />
+                    <input
+                      type="date"
+                      className="border rounded px-2 py-1 flex-1"
+                      value={newSubtask.endDate}
+                      onChange={e => setNewSubtask(s => ({ ...s, endDate: e.target.value }))}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <select
+                      className="border rounded px-2 py-1 flex-1"
+                      value={newSubtask.priority}
+                      onChange={e => setNewSubtask(s => ({ ...s, priority: e.target.value }))}
+                    >
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                      <option value="urgent">Urgent</option>
+                    </select>
+                    <select
+                      className="border rounded px-2 py-1 flex-1"
+                      value={newSubtask.status}
+                      onChange={e => setNewSubtask(s => ({ ...s, status: e.target.value }))}
+                    >
+                      <option value="todo">To do</option>
+                      <option value="in_progress">In progress</option>
+                      <option value="completed">Completed</option>
+                    </select>
+                  </div>
+                  {subtaskError && <div className="text-red-500 text-sm">{subtaskError}</div>}
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      className="bg-cyan-600 text-white px-3 py-1 rounded"
+                      onClick={handleAddSubtask}
+                      disabled={!newSubtask.title.trim() || addingSubtask}
+                    >
+                      {addingSubtask ? 'Adding...' : 'Add Subtask'}
+                    </button>
+                    <button
+                      className="bg-gray-200 text-gray-700 px-3 py-1 rounded"
+                      onClick={() => { setShowSubtaskForm(false); setNewSubtask({ title: '', description: '', startDate: '', endDate: '', priority: 'medium', status: 'todo' }); setSubtaskError(''); }}
+                      disabled={addingSubtask}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
           {/* --- COMMENT SECTION --- */}

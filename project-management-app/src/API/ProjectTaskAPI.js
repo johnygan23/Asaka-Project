@@ -126,3 +126,7 @@ export const getTaskAttachments = async (taskId) => {
 export const removeTaskAttachment = async (taskId, attachmentId) => {
   return await requestWrapper(`${TASK_API_URL}/${taskId}/attachments/${attachmentId}`, "DELETE");
 }; 
+
+export const addSubtask = async (taskId, userId, subtaskData) => {
+  return await requestWrapper(`${TASK_API_URL}/${taskId}/${userId}/subtask`, "POST", subtaskData);
+}
