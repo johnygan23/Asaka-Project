@@ -4,6 +4,7 @@ import { FiPaperclip, FiX, FiDownload, FiFile } from 'react-icons/fi';
 import * as ProjectTaskAPI from '../API/ProjectTaskAPI';
 import { getAttachmentsByProjectTaskId, downloadAttachment, uploadAttachment, deleteAttachment } from '../API/AttachmentAPI';
 import * as CommentAPI from '../API/CommentAPI';
+import { getUserId } from '../API/AuthAPI';
 
 const statusColors = {
   completed: 'bg-green-700 text-white',
@@ -19,13 +20,19 @@ const priorityColors = {
 };
 
 function TaskDetailsModal({ task, onClose, onSave, projects, onAddComment }) {
-  const [editTask, setEditTask] = useState({ ...task, subtasks: task.subtasks || [], attachments: task.attachments || [] });
+  const [editTask, setEditTask] = useState({ ...task, attachments: task.attachments || [] });
   const [loading, setLoading] = useState(false);
   const [assigneeQuery, setAssigneeQuery] = useState('');
   const [showAssigneeDropdown, setShowAssigneeDropdown] = useState(false);
   const [showSubtaskModal, setShowSubtaskModal] = useState(null); // subtask object or null
-  const [addingSubtask, setAddingSubtask] = useState(false);
-  const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+  const [newSubtask, setNewSubtask] = useState({
+    title: '',
+    description: '',
+    startDate: '',
+    endDate: '',
+    priority: 'medium',
+    status: 'todo',
+  });
   const [selectedFiles, setSelectedFiles] = useState([]);
   const modalRef = useRef(null);
   const assigneeInputRef = useRef(null);
@@ -33,6 +40,12 @@ function TaskDetailsModal({ task, onClose, onSave, projects, onAddComment }) {
   const [newComment, setNewComment] = useState('');
   const [addingComment, setAddingComment] = useState(false);
   const [taskComments, setTaskComments] = useState([]);
+  const [addingSubtask, setAddingSubtask] = useState(false);
+  const [showSubtaskForm, setShowSubtaskForm] = useState(false);
+  const [subtaskError, setSubtaskError] = useState('');
+  const [allTasks, setAllTasks] = useState([]);
+  const [loadingTasks, setLoadingTasks] = useState(true);
+  const [subtasks, setSubtasks] = useState([]);
 
   // Debug logs
   console.log('TaskDetailsModal taskComments state:', taskComments);
@@ -63,10 +76,11 @@ function TaskDetailsModal({ task, onClose, onSave, projects, onAddComment }) {
   }, [onClose]);
 
   useEffect(() => {
-    let isMounted = true;
+    
     const fetchTaskandComment = async () => {
       if (!task?.id) return;
       setLoading(true);
+      setLoadingTasks(true);
       try {
         const response = await ProjectTaskAPI.getTaskById(task.id);
         const data = response?.data || response;
@@ -77,23 +91,24 @@ function TaskDetailsModal({ task, onClose, onSave, projects, onAddComment }) {
 
         const responseComment = await CommentAPI.getAllComments();
         const dataComment = responseComment?.data || responseComment;
-        if (isMounted) {
-          setEditTask({
-            ...data,
-            subtasks: data.subtasks || [],
-            attachments: attachments
-          });
-          setEditTask({ ...data, subtasks: data.subtasks || [], attachments: data.attachments || [] });
+        const responseAllTasks = await ProjectTaskAPI.getAllTasks();
+        const dataAllTasks = responseAllTasks?.data || responseAllTasks;
+        
+          console.log('Fetched task data:', data);
+          setEditTask({ ...data, attachments: data.attachments || [] });
           setTaskComments(Array.isArray(dataComment) ? dataComment : (dataComment.comments || []));
-        }
+          setAllTasks(Array.isArray(dataAllTasks) ? dataAllTasks : []);
+          setSubtasks(dataAllTasks.filter(t => t.nestedLevel === 1 && t.parentId === task.id));
+
       } catch (error) {
         // Optionally handle error
       } finally {
-        if (isMounted) setLoading(false);
+        setLoading(false);
+        setLoadingTasks(false);
       }
     };
     fetchTaskandComment();
-    return () => { isMounted = false; };
+    // return () => { isMounted = false; };
   }, [task?.id]);
 
   // Filter people by query
@@ -110,42 +125,57 @@ function TaskDetailsModal({ task, onClose, onSave, projects, onAddComment }) {
   };
 
   // Subtask logic
-  const handleAddSubtask = () => {
-    if (newSubtaskTitle.trim()) {
-      setEditTask(t => ({
-        ...t,
-        subtasks: [
-          ...t.subtasks,
-          {
-            id: Date.now().toString(),
-            title: newSubtaskTitle,
-            completed: false,
-            subtasks: [],
-          },
-        ],
-      }));
-      setNewSubtaskTitle('');
+  const handleAddSubtask = async () => {
+    if (!newSubtask.title.trim()) return;
+    setAddingSubtask(true);
+    setSubtaskError('');
+    try {
+      console.log('About to call addSubtask', task.id, newSubtask);
+      const userId = await getUserId();
+      const response = await ProjectTaskAPI.addSubtask(task.id, userId, {...newSubtask});
+      console.log('addSubtask response:', response);
+      const createdSubtask = response.data || response;
+      // setEditTask(t => ({
+      //   ...t,
+      //   subtasks: [
+      //     ...t.subtasks,
+      //     createdSubtask,
+      //   ],
+      // }));
+      setNewSubtask({
+        title: '',
+        description: '',
+        startDate: '',
+        endDate: '',
+        priority: 'medium',
+        status: 'todo',
+      });
+      setShowSubtaskForm(false);
+    } catch (error) {
+      console.log('Subtask creation error:', error);
+      setSubtaskError('Failed to add subtask. Please try again.');
+    } finally {
       setAddingSubtask(false);
     }
   };
 
-  const handleToggleSubtask = (subId) => {
-    setEditTask(t => ({
-      ...t,
-      subtasks: t.subtasks.map(st =>
-        st.id === subId ? { ...st, completed: !st.completed } : st
-      ),
-    }));
-  };
+  // const handleToggleSubtask = (subId) => {
+  //   setEditTask(t => ({
+  //     ...t,
+  //     subtasks: t.subtasks.map(st =>
+  //       st.id === subId ? { ...st, completed: !st.completed } : st
+  //     ),
+  //   }));
+  // };
 
-  const handleUpdateSubtask = (subId, updated) => {
-    setEditTask(t => ({
-      ...t,
-      subtasks: t.subtasks.map(st =>
-        st.id === subId ? { ...st, ...updated } : st
-      ),
-    }));
-  };
+  // const handleUpdateSubtask = (subId, updated) => {
+  //   setEditTask(t => ({
+  //     ...t,
+  //     subtasks: t.subtasks.map(st =>
+  //       st.id === subId ? { ...st, ...updated } : st
+  //     ),
+  //   }));
+  // };
 
   const handleGetAttachments = async () => {
     try {
