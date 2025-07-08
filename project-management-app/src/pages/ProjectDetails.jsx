@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { projectColors } from '../data/colors';
-import { deleteProject } from '../API/ProjectAPI';
+import { deleteProject, updateProject } from '../API/ProjectAPI';
 import Layout from '../components/Layout';
 import ProjectOverview from '../components/ProjectOverview';
 import ProjectBoard from '../components/ProjectBoard.jsx';
@@ -40,8 +40,28 @@ const ProjectDetails = ({ onLogout, projects = [], onUpdateProject, users = [] }
         alert('Edit project details (implement modal as needed)');
         setShowDropdown(false);
     };
-    const handleArchive = () => {
-        onUpdateProject?.(currentProject.id, { archived: true });
+    const handleArchive = async () => {
+        try {
+            // Backend may require the full project payload rather than a partial.
+            const payload = {
+                title: currentProject.title,
+                description: currentProject.description,
+                goal: currentProject.goal,
+                color: currentProject.color,
+                priority: currentProject.priority,
+                status: 'Archived',
+                startDate: currentProject.startDate,
+                endDate: currentProject.endDate,
+            };
+            await updateProject(currentProject.id, payload);
+            // Update local state so UI reflects the change immediately
+            onUpdateProject?.(currentProject.id, { status: 'Archived' });
+            // Navigate to home page after successful archive and reload to refresh global state
+            navigate('/home');
+            window.location.reload();
+        } catch (error) {
+            console.error('Failed to archive project', error);
+        }
         setShowDropdown(false);
     };
     const handleDelete = () => {
