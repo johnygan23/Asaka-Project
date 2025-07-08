@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { people } from '../data/people';
 import { FiPaperclip, FiX, FiDownload, FiFile } from 'react-icons/fi';
 import * as ProjectTaskAPI from '../API/ProjectTaskAPI';
+import * as CommentAPI from '../API/CommentAPI';
 
 const statusColors = {
   completed: 'bg-green-700 text-white',
@@ -16,7 +17,7 @@ const priorityColors = {
   urgent: 'bg-red-500 text-white',
 };
 
-function TaskDetailsModal({ task, onClose, onSave, projects }) {
+function TaskDetailsModal({ task, onClose, onSave, projects, onAddComment }) {
   const [editTask, setEditTask] = useState({ ...task, subtasks: task.subtasks || [], attachments: task.attachments || [] });
   const [loading, setLoading] = useState(false);
   const [assigneeQuery, setAssigneeQuery] = useState('');
@@ -28,6 +29,12 @@ function TaskDetailsModal({ task, onClose, onSave, projects }) {
   const modalRef = useRef(null);
   const assigneeInputRef = useRef(null);
   const fileInputRef = useRef(null);
+  const [newComment, setNewComment] = useState('');
+  const [addingComment, setAddingComment] = useState(false);
+  const [taskComments, setTaskComments] = useState([]);
+
+  // Debug logs
+        console.log('TaskDetailsModal taskComments state:', taskComments);
 
   useEffect(() => {
     // Trap focus
@@ -56,14 +63,17 @@ function TaskDetailsModal({ task, onClose, onSave, projects }) {
 
   useEffect(() => {
     let isMounted = true;
-    const fetchTask = async () => {
+    const fetchTaskandComment = async () => {
       if (!task?.id) return;
       setLoading(true);
       try {
         const response = await ProjectTaskAPI.getTaskById(task.id);
         const data = response?.data || response;
+        const responseComment = await CommentAPI.getAllComments();
+        const dataComment = responseComment?.data || responseComment;
         if (isMounted) {
           setEditTask({ ...data, subtasks: data.subtasks || [], attachments: data.attachments || [] });
+          setTaskComments(Array.isArray(dataComment) ? dataComment : (dataComment.comments || []));
         }
       } catch (error) {
         // Optionally handle error
@@ -71,7 +81,7 @@ function TaskDetailsModal({ task, onClose, onSave, projects }) {
         if (isMounted) setLoading(false);
       }
     };
-    fetchTask();
+    fetchTaskandComment();
     return () => { isMounted = false; };
   }, [task?.id]);
 
@@ -171,6 +181,20 @@ function TaskDetailsModal({ task, onClose, onSave, projects }) {
     if (fileType.includes('excel') || fileType.includes('spreadsheet')) return '📊';
     if (fileType.includes('powerpoint') || fileType.includes('presentation')) return '📈';
     return '📎';
+  };
+
+  // Add comment handler
+  const handleAddComment = async () => {
+    if (!newComment.trim()) return;
+    setAddingComment(true);
+    try {
+      await onAddComment(task.id, { content: newComment });
+      setNewComment('');
+    } catch (error) {
+      // Optionally show error
+    } finally {
+      setAddingComment(false);
+    }
   };
 
   if (loading) {
@@ -437,15 +461,36 @@ function TaskDetailsModal({ task, onClose, onSave, projects }) {
               </button>
             )}
           </div>
-          {/* Comments (placeholder) */}
-          <div className="mt-8 border-t border-gray-200 pt-4">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="w-8 h-8 rounded-full bg-yellow-400 flex items-center justify-center text-gray-900 font-bold">WB</span>
+          {/* --- COMMENT SECTION --- */}
+          <div className="mt-6">
+            <h3 className="font-semibold mb-2">Comments</h3>
+            <div className="space-y-2">
+              {taskComments.length === 0 && <div className="text-gray-500">No comments yet.</div>}
+              {taskComments.map(comment => (
+                <div key={comment.id} className="bg-gray-100 rounded p-2">
+                  <div className="text-sm text-gray-800">{comment.content}</div>
+                  <div className="text-xs text-gray-500">
+                    {comment.owner?.username || 'Unknown'} • {new Date(comment.postDate).toLocaleString()}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="flex mt-2 gap-2">
               <input
-                className="flex-1 bg-gray-100 rounded-full px-4 py-2 text-black focus:outline-none"
-                placeholder="Add a comment"
-                disabled
+                type="text"
+                value={newComment}
+                onChange={e => setNewComment(e.target.value)}
+                placeholder="Add a comment..."
+                className="flex-1 border rounded px-2 py-1"
+                disabled={addingComment}
               />
+              <button
+                onClick={handleAddComment}
+                className="bg-cyan-600 text-white px-3 py-1 rounded"
+                disabled={addingComment || !newComment.trim()}
+              >
+                {addingComment ? 'Posting...' : 'Post'}
+              </button>
             </div>
           </div>
         </div>
@@ -487,6 +532,7 @@ function TaskDetailsModal({ task, onClose, onSave, projects }) {
           setShowSubtaskModal(null);
         }}
         projects={projects}
+        onAddComment={onAddComment}
       />
     )}
     </>
