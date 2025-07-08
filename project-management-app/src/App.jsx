@@ -228,7 +228,7 @@ function App() {
           path="/projects/:projectId"
           element={
             <ProtectedRoute>
-              <ProjectDetails onLogout={handleLogout} projects={projects} onUpdateProject={handleUpdateProject} />
+              <ProjectDetails onLogout={handleLogout} projects={projects} onUpdateProject={handleUpdateProject} users={users} />
             </ProtectedRoute>
           }
         />

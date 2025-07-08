@@ -14,7 +14,7 @@ const Sidebar = ({ onLogout, projects = [] }) => {
         const saved = localStorage.getItem('sidebarProjectsOpen');
         return saved ? JSON.parse(saved) : false;
     });
-    
+
     const unreadCount = inboxMessages.filter(m => !m.isRead).length;
 
     // Save to localStorage whenever projectsOpen changes

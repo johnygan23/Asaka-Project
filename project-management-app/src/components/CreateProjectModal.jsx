@@ -7,8 +7,8 @@ const CreateProjectModal = ({ onClose, onCreate, projectsCount = 0 }) => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [goal, setGoal] = useState('');
-    const [priority, setPriority] = useState('Medium');
-    const [status, setStatus] = useState('NotStarted');
+    const [priority, setPriority] = useState('low');
+    const [status, setStatus] = useState('active');
     const initialColor = projectColors[projectsCount % projectColors.length];
     const [color, setColor] = useState(initialColor);
     const [startDate, setStartDate] = useState('');
@@ -113,9 +113,9 @@ const CreateProjectModal = ({ onClose, onCreate, projectsCount = 0 }) => {
                                 onChange={(e) => setPriority(e.target.value)}
                                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors duration-200"
                             >
-                                <option value="Low">Low</option>
-                                <option value="Medium">Medium</option>
-                                <option value="High">High</option>
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
                             </select>
                         </div>
                         <div>
@@ -128,11 +128,10 @@ const CreateProjectModal = ({ onClose, onCreate, projectsCount = 0 }) => {
                                 onChange={(e) => setStatus(e.target.value)}
                                 className="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors duration-200"
                             >
-                                <option value="NotStarted">Not Started</option>
-                                <option value="Active">Active</option>
-                                <option value="Paused">Paused</option>
-                                <option value="Completed">Completed</option>
-                                <option value="Archived">Archived</option>
+                                <option value="active">Active</option>
+                                <option value="paused">Paused</option>
+                                <option value="completed">Completed</option>
+                                <option value="archived">Archived</option>
                             </select>
                         </div>
                     </div>

@@ -1,14 +1,101 @@
 import { useState, useEffect } from 'react';
-import { people as initialMembers } from '../data/people';
 import { projectColors } from '../data/colors';
-import { updateProject } from '../API/ProjectAPI';
+import { updateProject, addProjectMember, getProjectById } from '../API/ProjectAPI';
 
-const ProjectOverview = ({ project, onUpdateProject }) => {
+const ProjectOverview = ({ project, onUpdateProject, users = [] }) => {
     const [description, setDescription] = useState('');
     const [isEditingDescription, setIsEditingDescription] = useState(false);
     const [goal, setGoal] = useState('');
     const [isEditingGoal, setIsEditingGoal] = useState(false);
-    const [members, setMembers] = useState(initialMembers);
+    // Project members list – fetched from backend (owner plus others)
+    const [members, setMembers] = useState([]);
+
+    // Trigger to re-fetch members after changes
+    const [memberRefreshFlag, setMemberRefreshFlag] = useState(0);
+
+    // Fetch members list from backend whenever project changes or refresh flag increments
+    useEffect(() => {
+        const fetchMembers = async () => {
+            if (!project?.id) return;
+            try {
+                const resp = await getProjectById(project.id);
+                const data = resp?.data;
+                const collected = [];
+
+                const ownerApi = data?.owner || data?.projectOwner;
+                if (ownerApi) {
+                    collected.push({
+                        id: ownerApi.id ?? 'owner',
+                        name: ownerApi.username || ownerApi.name || (ownerApi.email ? ownerApi.email.split('@')[0] : 'Owner'),
+                        email: ownerApi.email || '',
+                        initials: getInitials(ownerApi.username || ownerApi.name || ownerApi.email),
+                        role: 'Owner',
+                        color: projectColors[collected.length % projectColors.length],
+                        isOwner: true,
+                    });
+                }
+
+                const assigneesApi =
+                    (Array.isArray(data?.assignees) && data.assignees) ||
+                    (Array.isArray(data?.assignedUsers) && data.assignedUsers) ||
+                    (Array.isArray(data?.projectAssignees) && data.projectAssignees) ||
+                    (Array.isArray(data?.members) && data.members) ||
+                    (Array.isArray(data) ? data : []); // legacy flat array
+
+                assigneesApi.forEach((u, idx) => {
+                    // Prevent duplicate entry if assignee is also the owner (match via id or email)
+                    if (collected.some((m) => (u.id && m.id === u.id) || (u.email && m.email === u.email))) {
+                        return;
+                    }
+
+                    collected.push({
+                        id: u.id ?? `member-${idx}`,
+                        name: u.username || u.name || (u.email ? u.email.split('@')[0] : 'User'),
+                        email: u.email || '',
+                        initials: getInitials(u.username || u.name || u.email),
+                        role: u.role || 'Member',
+                        color: projectColors[collected.length % projectColors.length],
+                        isOwner: false,
+                    });
+                });
+
+                if (collected.length > 0) {
+                    setMembers(collected);
+                    return;
+                }
+            } catch (err) {
+                console.error('Failed to fetch project members', err);
+            }
+
+            // Fallback: show owner only if no members received
+            const ownerName =
+                project.owner?.username ||
+                project.ownerName ||
+                project.createdBy ||
+                project.createdByName ||
+                'Project Owner';
+
+            const ownerEmail =
+                project.owner?.email ||
+                project.ownerEmail ||
+                '';
+
+            setMembers([
+                {
+                    id: 1,
+                    name: ownerName,
+                    email: ownerEmail,
+                    initials: getInitials(ownerName),
+                    role: 'Owner',
+                    color: projectColors[0],
+                    isOwner: true,
+                },
+            ]);
+        };
+
+        fetchMembers();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [project, memberRefreshFlag]);
 
     useEffect(() => {
         if (project) {
@@ -17,36 +104,70 @@ const ProjectOverview = ({ project, onUpdateProject }) => {
         }
     }, [project]);
 
+    // Helper to build full project payload for PUT
+    const buildPayload = (overrides = {}) => ({
+        title: project.title,
+        description: overrides.description ?? project.description,
+        goal: overrides.goal ?? project.goal,
+        color: project.color,
+        priority: overrides.priority ?? project.priority,
+        status: overrides.status ?? project.status,
+        startDate: overrides.startDate ?? project.startDate,
+        endDate: overrides.endDate ?? project.endDate,
+    });
+
     const [showAddMemberModal, setShowAddMemberModal] = useState(false);
     const [newMember, setNewMember] = useState({ identifier: '', role: 'Member' });
+    const [suggestions, setSuggestions] = useState([]);
+    const [selectedUser, setSelectedUser] = useState(null);
 
     // Editable fields state
     const [detailsEditMode, setDetailsEditMode] = useState(false);
     const [editValues, setEditValues] = useState({
-        goal: project.goal || '',
-        priority: project.priority || 'Medium',
-        status: project.status || 'NotStarted',
+        priority: project.priority,
+        status: project.status,
         startDate: project.startDate ? project.startDate.slice(0, 10) : '',
         endDate: project.endDate ? project.endDate.slice(0, 10) : '',
     });
 
     useEffect(() => {
         setEditValues({
-            priority: project.priority || 'Medium',
-            status: project.status || 'NotStarted',
+            priority: project.priority,
+            status: project.status,
             startDate: project.startDate ? project.startDate.slice(0, 10) : '',
             endDate: project.endDate ? project.endDate.slice(0, 10) : '',
         });
     }, [project]);
 
+    const handleSaveGoal = async () => {
+        try {
+            const payload = buildPayload({ goal });
+            await updateProject(project.id, payload);
+            onUpdateProject?.(project.id, { goal });
+            setIsEditingGoal(false);
+        } catch (error) {
+            console.error('Failed to update goal', error);
+        }
+    };
+
+    const handleSaveDescription = async () => {
+        try {
+            const payload = buildPayload({ description });
+            await updateProject(project.id, payload);
+            onUpdateProject?.(project.id, { description });
+            setIsEditingDescription(false);
+        } catch (error) {
+            console.error('Failed to update description', error);
+        }
+    };
+
     const handleSaveDetails = async () => {
-        const payload = {
-            goal: editValues.goal,
+        const payload = buildPayload({
             priority: editValues.priority,
             status: editValues.status,
             startDate: editValues.startDate,
             endDate: editValues.endDate,
-        };
+        });
         try {
             await updateProject(project.id, payload);
             onUpdateProject?.(project.id, payload);
@@ -57,52 +178,112 @@ const ProjectOverview = ({ project, onUpdateProject }) => {
     };
 
     const getStatusColor = (status) => {
-        switch (status) {
-            case 'Completed':
+        const s = (status || '').toLowerCase();
+        switch (s) {
+            case 'completed':
                 return 'bg-green-100 text-green-800';
-            case 'In Progress':
-            case 'Active':
+            case 'in progress':
+            case 'active':
                 return 'bg-yellow-100 text-yellow-800';
-            case 'Paused':
+            case 'paused':
+                return 'bg-orange-100 text-orange-800';
+            case 'archived':
                 return 'bg-gray-100 text-gray-800';
-            case 'NotStarted':
-                return 'bg-gray-50 text-gray-600';
             default:
                 return 'bg-gray-100 text-gray-800';
         }
     };
 
     const getPriorityColor = (priority) => {
-        switch (priority) {
-            case 'High':
+        const p = (priority || '').toLowerCase();
+        switch (p) {
+            case 'high':
                 return 'bg-red-100 text-red-800';
-            case 'Medium':
+            case 'medium':
                 return 'bg-yellow-100 text-yellow-800';
-            case 'Low':
+            case 'low':
                 return 'bg-green-100 text-green-800';
             default:
                 return 'bg-gray-100 text-gray-800';
         }
     };
 
-    const handleAddMember = (e) => {
-        e.preventDefault();
-        if (newMember.identifier) {
-            const isEmail = newMember.identifier.includes('@');
-            const extractedName = isEmail ? newMember.identifier.split('@')[0].replace(/\./g, ' ') : newMember.identifier;
-            const member = {
-                id: members.length + 1,
-                name: extractedName.charAt(0).toUpperCase() + extractedName.slice(1),
-                email: isEmail ? newMember.identifier : '',
-                initials: getInitials(extractedName),
-                role: newMember.role,
-                color: projectColors[members.length % projectColors.length],
-                isOwner: newMember.role === 'Admin'
-            };
-            setMembers([...members, member]);
-            setNewMember({ identifier: '', role: 'Member' });
-            setShowAddMemberModal(false);
+    const handleIdentifierChange = (e) => {
+        const value = e.target.value;
+        setNewMember({ ...newMember, identifier: value });
+
+        if (!value) {
+            setSuggestions([]);
+            setSelectedUser(null);
+            return;
         }
+
+        // Filter users who are not already members
+        const filtered = users
+            .filter(
+                (u) =>
+                    !members.some((m) => m.email === u.email || m.name === u.username) &&
+                    ((u.username && u.username.toLowerCase().includes(value.toLowerCase())) ||
+                        (u.email && u.email.toLowerCase().includes(value.toLowerCase())))
+            )
+            .slice(0, 5);
+        setSuggestions(filtered);
+    };
+
+    const handleSelectSuggestion = (user) => {
+        setSelectedUser(user);
+        setNewMember({ identifier: user.email || user.username, role: 'Member' });
+        setSuggestions([]);
+    };
+
+    const handleAddMember = async (e) => {
+        e.preventDefault();
+
+        // We must have either selectedUser or a typed identifier
+        if (!newMember.identifier) return;
+
+        let memberToAdd = null;
+
+        if (selectedUser) {
+            memberToAdd = selectedUser;
+        } else {
+            // Try to match the identifier to an existing user
+            const matched = users.find(
+                (u) => u.email === newMember.identifier || u.username === newMember.identifier
+            );
+            if (matched) {
+                memberToAdd = matched;
+            }
+        }
+
+        // If matched to a real user, call backend to add them to the project
+        if (memberToAdd) {
+            try {
+                await addProjectMember(project.id, memberToAdd.id);
+            } catch (error) {
+                console.error('Failed to add project member via API', error);
+            }
+        }
+
+        // Update local UI regardless (optimistic), fallback to typed name/email
+        const extractedName = memberToAdd?.username || memberToAdd?.name || newMember.identifier.split('@')[0].replace(/\./g, ' ');
+        const memberObj = {
+            id: members.length + 1,
+            name: extractedName.charAt(0).toUpperCase() + extractedName.slice(1),
+            email: memberToAdd?.email || (newMember.identifier.includes('@') ? newMember.identifier : ''),
+            initials: getInitials(extractedName),
+            role: newMember.role,
+            color: projectColors[members.length % projectColors.length],
+            isOwner: newMember.role === 'Admin',
+        };
+
+        setMembers([...members, memberObj]);
+        // Trigger a re-fetch next time so data stays in sync on reload
+        setMemberRefreshFlag((f) => f + 1);
+        setNewMember({ identifier: '', role: 'Member' });
+        setSelectedUser(null);
+        setSuggestions([]);
+        setShowAddMemberModal(false);
     };
 
     const getInitials = (name) => (name || '').split(' ').map(n => n[0]).join('').toUpperCase();
@@ -124,13 +305,16 @@ const ProjectOverview = ({ project, onUpdateProject }) => {
                             />
                             <div className="flex gap-2">
                                 <button
-                                    onClick={() => setIsEditingDescription(false)}
+                                    onClick={handleSaveDescription}
                                     className="px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600"
                                 >
                                     Save
                                 </button>
                                 <button
-                                    onClick={() => setIsEditingDescription(false)}
+                                    onClick={() => {
+                                        setDescription(project.description || 'Click to add a description.');
+                                        setIsEditingDescription(false);
+                                    }}
                                     className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
                                 >
                                     Cancel
@@ -163,9 +347,8 @@ const ProjectOverview = ({ project, onUpdateProject }) => {
                                     onClick={() => {
                                         setDetailsEditMode(false);
                                         setEditValues({
-                                            goal: project.goal || '',
-                                            priority: project.priority || 'Medium',
-                                            status: project.status || 'NotStarted',
+                                            priority: project.priority,
+                                            status: project.status,
                                             startDate: project.startDate ? project.startDate.slice(0, 10) : '',
                                             endDate: project.endDate ? project.endDate.slice(0, 10) : '',
                                         });
@@ -187,16 +370,6 @@ const ProjectOverview = ({ project, onUpdateProject }) => {
 
                     {detailsEditMode ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {/* Goal */}
-                            <div className="sm:col-span-2">
-                                <label className="block text-sm text-gray-500 mb-1">Goal</label>
-                                <input
-                                    type="text"
-                                    value={editValues.goal}
-                                    onChange={(e) => setEditValues(v => ({ ...v, goal: e.target.value }))}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                                />
-                            </div>
                             {/* Priority */}
                             <div>
                                 <label className="block text-sm text-gray-500 mb-1">Priority</label>
@@ -218,7 +391,6 @@ const ProjectOverview = ({ project, onUpdateProject }) => {
                                     onChange={(e) => setEditValues(v => ({ ...v, status: e.target.value }))}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
                                 >
-                                    <option>NotStarted</option>
                                     <option>Active</option>
                                     <option>Paused</option>
                                     <option>Completed</option>
@@ -247,27 +419,62 @@ const ProjectOverview = ({ project, onUpdateProject }) => {
                             </div>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 grid-cols-2 gap-6">
                             <div>
-                                <p className="text-sm text-gray-500">Goal</p>
-                                <p className="font-medium text-gray-900 break-words whitespace-pre-wrap">{project.goal || '-'}</p>
-                            </div>
-                            <div>
-                                <p className="text-sm text-gray-500">Priority</p>
+                                <p className="text-m text-gray-500">Priority</p>
                                 <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${getPriorityColor(project.priority)}`}>{project.priority}</span>
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500">Status</p>
+                                <p className="text-m text-gray-500">Status</p>
                                 <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(project.status)}`}>{project.status}</span>
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500">Start Date</p>
-                                <p className="font-medium text-gray-900">{project.startDate ? new Date(project.startDate).toLocaleDateString() : '-'}</p>
+                                <p className="text-m text-gray-500">Start Date</p>
+                                <p className="font-medium text-gray-700">{project.startDate ? new Date(project.startDate).toLocaleDateString() : '-'}</p>
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500">End Date</p>
-                                <p className="font-medium text-gray-900">{project.endDate ? new Date(project.endDate).toLocaleDateString() : '-'}</p>
+                                <p className="text-m text-gray-500">End Date</p>
+                                <p className="font-medium text-gray-700">{project.endDate ? new Date(project.endDate).toLocaleDateString() : '-'}</p>
                             </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Project Goal */}
+                <div className="bg-white rounded-lg shadow p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Project Goal</h3>
+                    {isEditingGoal ? (
+                        <div className="space-y-3">
+                            <input
+                                type="text"
+                                value={goal}
+                                onChange={(e) => setGoal(e.target.value)}
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                            />
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={handleSaveGoal}
+                                    className="px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600"
+                                >
+                                    Save
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setIsEditingGoal(false);
+                                        setGoal(project.goal || 'Click to add a project goal.');
+                                    }}
+                                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div
+                            onClick={() => setIsEditingGoal(true)}
+                            className="text-gray-600 cursor-pointer hover:bg-gray-50 p-3 rounded-lg transition-colors"
+                        >
+                            {goal}
                         </div>
                     )}
                 </div>
@@ -328,33 +535,34 @@ const ProjectOverview = ({ project, onUpdateProject }) => {
 
             {/* Add Member Modal */}
             {showAddMemberModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white/95 backdrop-blur-sm rounded-lg p-6 w-full max-w-md">
                         <h2 className="text-xl font-semibold text-gray-900 mb-4">Add Team Member</h2>
                         <form onSubmit={handleAddMember}>
                             <div className="space-y-4">
-                                <div>
+                                <div className="relative">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Name or Email</label>
                                     <input
                                         type="text"
                                         value={newMember.identifier}
-                                        onChange={(e) => setNewMember({ ...newMember, identifier: e.target.value })}
-                                        placeholder="e.g., alice or alice@example.com"
+                                        onChange={handleIdentifierChange}
+                                        placeholder="e.g., jacob or jacob@gmail.com"
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
                                         required
                                     />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-                                    <select
-                                        value={newMember.role}
-                                        onChange={(e) => setNewMember({ ...newMember, role: e.target.value })}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                                    >
-                                        <option>Admin</option>
-                                        <option>Project Manager</option>
-                                        <option>Member</option>
-                                    </select>
+                                    {suggestions.length > 0 && (
+                                        <ul className="border border-gray-200 rounded mt-1 max-h-40 overflow-auto bg-white shadow z-10 absolute w-full">
+                                            {suggestions.map((u) => (
+                                                <li
+                                                    key={u.id}
+                                                    onClick={() => handleSelectSuggestion(u)}
+                                                    className="px-3 py-2 cursor-pointer hover:bg-gray-100"
+                                                >
+                                                    {u.username || u.name} <span className="text-gray-500 text-xs">{u.email}</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
                                 </div>
                             </div>
                             <div className="flex gap-3 mt-6">
