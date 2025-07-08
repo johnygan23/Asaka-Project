@@ -8,6 +8,7 @@ import FilesView from '../components/FilesView';
 import { useTasks } from '../context/TaskContext';
 import OverviewIcon from '../assets/overview-svgrepo-com.svg';
 import BoardIcon from '../assets/board-svgrepo-com.svg';
+import FilesIcon from '../assets/folder-arrow-up-svgrepo-com.svg';
 
 const ProjectDetails = ({ onLogout, projects = [], onUpdateProject }) => {
     const { projectId } = useParams();
@@ -183,7 +184,7 @@ const ProjectDetails = ({ onLogout, projects = [], onUpdateProject }) => {
                                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                                 }`}
                         >
-                            <span className="text-lg">📁</span>
+                            <img src={FilesIcon} alt="Files" className="w-4 h-4" />
                             Files
                         </button>
                         {/* Add more tabs as needed: List, Timeline, Calendar, etc. */}
@@ -192,7 +193,9 @@ const ProjectDetails = ({ onLogout, projects = [], onUpdateProject }) => {
             </div>
 
             {/* Tab Content */}
-            {activeTab === 'overview' && currentProject && <ProjectOverview project={currentProject} />}
+            {activeTab === 'overview' && currentProject && (
+                <ProjectOverview project={currentProject} onUpdateProject={onUpdateProject} />
+            )}
             {activeTab === 'board' && <ProjectBoard projectId={projectId} />}
             {activeTab === 'files' && (
                 <FilesView

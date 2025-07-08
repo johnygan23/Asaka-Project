@@ -20,17 +20,14 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [projects, setProjects] = useState([]);
   const [projectTasks, setProjectTasks] = useState([]);
-  const [users, setUsers] = useState([]); // Store the logged in user's info like id, name, email, and role
+  const [users, setUsers] = useState([]);
   const [userInfo, setUserInfo] = useState({});
   const [loadingProjects, setLoadingProjects] = useState(true);
-  // State to control the global Create Project modal
   const [showCreateProjectModal, setShowCreateProjectModal] = useState(false);
 
   useEffect(() => {
     async function runApp() {
-      // When the app loads, check if token is valid
       var result = isTokenValid();
-      // No 'tokens' key found in localStorage
       if (result === null) return;
       if (!result.isValid) {
         try {
@@ -145,9 +142,16 @@ function App() {
   // Handle creation of a new project from the modal
   const handleProjectCreate = async (projectData) => {
     try {
-      const created = await ProjectAPI.addProject(projectData);
-      // Ensure projects list is updated immediately in state
-      setProjects((prev) => [...prev, created]);
+      const response = await ProjectAPI.addProject(projectData);
+      // response is AxiosResponse; use its data property
+      const newProject = Array.isArray(response?.data) ? response.data[0] : (response?.data ?? null);
+
+      if (newProject) {
+        setProjects((prev) => [...prev, newProject]);
+      } else {
+        // Fallback: refetch all projects if format unexpected
+        await fetchProjects();
+      }
     } catch (error) {
       console.error('Error creating project:', error);
     }
@@ -188,7 +192,7 @@ function App() {
           path="/tasks"
           element={
             <ProtectedRoute>
-              <Tasks onLogout={handleLogout} projects={projects} projectTasks={projectTasks} />
+              <Tasks onLogout={handleLogout} projects={projects} />
             </ProtectedRoute>
           }
         />
