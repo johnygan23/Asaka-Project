@@ -17,13 +17,24 @@ const ProjectOverview = ({ project, onUpdateProject }) => {
         }
     }, [project]);
 
+    // Helper to build full project payload for PUT
+    const buildPayload = (overrides = {}) => ({
+        title: project.title,
+        description: overrides.description ?? project.description,
+        goal: overrides.goal ?? project.goal,
+        color: project.color,
+        priority: overrides.priority ?? project.priority,
+        status: overrides.status ?? project.status,
+        startDate: overrides.startDate ?? project.startDate,
+        endDate: overrides.endDate ?? project.endDate,
+    });
+
     const [showAddMemberModal, setShowAddMemberModal] = useState(false);
     const [newMember, setNewMember] = useState({ identifier: '', role: 'Member' });
 
     // Editable fields state
     const [detailsEditMode, setDetailsEditMode] = useState(false);
     const [editValues, setEditValues] = useState({
-        goal: project.goal || '',
         priority: project.priority || 'Medium',
         status: project.status || 'NotStarted',
         startDate: project.startDate ? project.startDate.slice(0, 10) : '',
@@ -32,21 +43,42 @@ const ProjectOverview = ({ project, onUpdateProject }) => {
 
     useEffect(() => {
         setEditValues({
-            priority: project.priority || 'Medium',
-            status: project.status || 'NotStarted',
+            priority: project.priority,
+            status: project.status,
             startDate: project.startDate ? project.startDate.slice(0, 10) : '',
             endDate: project.endDate ? project.endDate.slice(0, 10) : '',
         });
     }, [project]);
 
+    const handleSaveGoal = async () => {
+        try {
+            const payload = buildPayload({ goal });
+            await updateProject(project.id, payload);
+            onUpdateProject?.(project.id, { goal });
+            setIsEditingGoal(false);
+        } catch (error) {
+            console.error('Failed to update goal', error);
+        }
+    };
+
+    const handleSaveDescription = async () => {
+        try {
+            const payload = buildPayload({ description });
+            await updateProject(project.id, payload);
+            onUpdateProject?.(project.id, { description });
+            setIsEditingDescription(false);
+        } catch (error) {
+            console.error('Failed to update description', error);
+        }
+    };
+
     const handleSaveDetails = async () => {
-        const payload = {
-            goal: editValues.goal,
+        const payload = buildPayload({
             priority: editValues.priority,
             status: editValues.status,
             startDate: editValues.startDate,
             endDate: editValues.endDate,
-        };
+        });
         try {
             await updateProject(project.id, payload);
             onUpdateProject?.(project.id, payload);
@@ -57,28 +89,30 @@ const ProjectOverview = ({ project, onUpdateProject }) => {
     };
 
     const getStatusColor = (status) => {
-        switch (status) {
-            case 'Completed':
+        const s = (status || '').toLowerCase();
+        switch (s) {
+            case 'completed':
                 return 'bg-green-100 text-green-800';
-            case 'In Progress':
-            case 'Active':
+            case 'in progress':
+            case 'active':
                 return 'bg-yellow-100 text-yellow-800';
-            case 'Paused':
+            case 'paused':
+                return 'bg-orange-100 text-orange-800';
+            case 'archived':
                 return 'bg-gray-100 text-gray-800';
-            case 'NotStarted':
-                return 'bg-gray-50 text-gray-600';
             default:
                 return 'bg-gray-100 text-gray-800';
         }
     };
 
     const getPriorityColor = (priority) => {
-        switch (priority) {
-            case 'High':
+        const p = (priority || '').toLowerCase();
+        switch (p) {
+            case 'high':
                 return 'bg-red-100 text-red-800';
-            case 'Medium':
+            case 'medium':
                 return 'bg-yellow-100 text-yellow-800';
-            case 'Low':
+            case 'low':
                 return 'bg-green-100 text-green-800';
             default:
                 return 'bg-gray-100 text-gray-800';
@@ -163,7 +197,6 @@ const ProjectOverview = ({ project, onUpdateProject }) => {
                                     onClick={() => {
                                         setDetailsEditMode(false);
                                         setEditValues({
-                                            goal: project.goal || '',
                                             priority: project.priority || 'Medium',
                                             status: project.status || 'NotStarted',
                                             startDate: project.startDate ? project.startDate.slice(0, 10) : '',
@@ -187,16 +220,6 @@ const ProjectOverview = ({ project, onUpdateProject }) => {
 
                     {detailsEditMode ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {/* Goal */}
-                            <div className="sm:col-span-2">
-                                <label className="block text-sm text-gray-500 mb-1">Goal</label>
-                                <input
-                                    type="text"
-                                    value={editValues.goal}
-                                    onChange={(e) => setEditValues(v => ({ ...v, goal: e.target.value }))}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
-                                />
-                            </div>
                             {/* Priority */}
                             <div>
                                 <label className="block text-sm text-gray-500 mb-1">Priority</label>
@@ -218,7 +241,6 @@ const ProjectOverview = ({ project, onUpdateProject }) => {
                                     onChange={(e) => setEditValues(v => ({ ...v, status: e.target.value }))}
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
                                 >
-                                    <option>NotStarted</option>
                                     <option>Active</option>
                                     <option>Paused</option>
                                     <option>Completed</option>
@@ -249,10 +271,6 @@ const ProjectOverview = ({ project, onUpdateProject }) => {
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <p className="text-sm text-gray-500">Goal</p>
-                                <p className="font-medium text-gray-900 break-words whitespace-pre-wrap">{project.goal || '-'}</p>
-                            </div>
-                            <div>
                                 <p className="text-sm text-gray-500">Priority</p>
                                 <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${getPriorityColor(project.priority)}`}>{project.priority}</span>
                             </div>
@@ -268,6 +286,45 @@ const ProjectOverview = ({ project, onUpdateProject }) => {
                                 <p className="text-sm text-gray-500">End Date</p>
                                 <p className="font-medium text-gray-900">{project.endDate ? new Date(project.endDate).toLocaleDateString() : '-'}</p>
                             </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Project Goal */}
+                <div className="bg-white rounded-lg shadow p-6">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Project Goal</h3>
+                    {isEditingGoal ? (
+                        <div className="space-y-3">
+                            <input
+                                type="text"
+                                value={goal}
+                                onChange={(e) => setGoal(e.target.value)}
+                                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
+                            />
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={handleSaveGoal}
+                                    className="px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600"
+                                >
+                                    Save
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setIsEditingGoal(false);
+                                        setGoal(project.goal || 'Click to add a project goal.');
+                                    }}
+                                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div
+                            onClick={() => setIsEditingGoal(true)}
+                            className="text-gray-600 cursor-pointer hover:bg-gray-50 p-3 rounded-lg transition-colors"
+                        >
+                            {goal}
                         </div>
                     )}
                 </div>
@@ -328,7 +385,7 @@ const ProjectOverview = ({ project, onUpdateProject }) => {
 
             {/* Add Member Modal */}
             {showAddMemberModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white/95 backdrop-blur-sm rounded-lg p-6 w-full max-w-md">
                         <h2 className="text-xl font-semibold text-gray-900 mb-4">Add Team Member</h2>
                         <form onSubmit={handleAddMember}>
