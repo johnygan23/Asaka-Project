@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 // import { useTasks } from '../context/TaskContext';
-import { FiEdit2, FiCalendar, FiCheck, FiPaperclip, FiDownload, FiX } from 'react-icons/fi';
+// import { FiEdit2, FiCalendar, FiCheck, FiPaperclip, FiDownload, FiX } from 'react-icons/fi';
 import TaskDetailsModal from '../components/TaskDetailsModal';
 import FilesView from '../components/FilesView';
 import * as ProjectTaskAPI from '../API/ProjectTaskAPI';
@@ -25,30 +25,30 @@ const getColumnTasks = (tasks) => ({
   completed: tasks.filter(t => t.status === 'completed'),
 });
 
-const Tasks = ({ onLogout, projects = [] }) => {
+const Tasks = ({ onLogout, projects, projectTasks }) => {
   // const { tasks, addTask, updateTask } = useTasks();
-  const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [tasks, setTasks] = useState(projectTasks);
+  const [loading, setLoading] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [activeTab, setActiveTab] = useState('board'); // 'board', 'dashboard', 'files'
 
   // Fetch all tasks from API
-  useEffect(() => {
-    const fetchTasks = async () => {
-      setLoading(true);
-      try {
-        const response = await ProjectTaskAPI.getOwnedTasksByUserId();
-        const data = response?.data || response;
-        setTasks(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error('Error fetching tasks:', error);
-        setTasks([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchTasks();
-  }, []);
+  // useEffect(() => {
+  //   const fetchTasks = async () => {
+  //     setLoading(true);
+  //     try {
+  //       const response = await ProjectTaskAPI.getAllTasksByUserId();
+  //       const data = response?.data || response;
+  //       setTasks(Array.isArray(data) ? data : []);
+  //     } catch (error) {
+  //       console.error('Error fetching tasks:', error);
+  //       setTasks([]);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+  //   fetchTasks();
+  // }, []);
 
   // Update task in API and local state
   const updateTask = async (id, updates) => {
@@ -139,8 +139,6 @@ const Tasks = ({ onLogout, projects = [] }) => {
       ))}
     </div>
   );
-
-
 
   if (loading) {
     return (
