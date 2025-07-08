@@ -5,6 +5,7 @@ import Layout from '../components/Layout';
 import TaskDetailsModal from '../components/TaskDetailsModal';
 import FilesView from '../components/FilesView';
 import * as ProjectTaskAPI from '../API/ProjectTaskAPI';
+import { isTokenValid } from '../API/AuthAPI';
 
 const columns = [
   { key: 'todo', title: 'To Do' },
@@ -13,9 +14,9 @@ const columns = [
 ];
 
 const priorityColors = {
-  High: 'bg-red-500 text-white',
-  Medium: 'bg-yellow-400 text-gray-900',
-  Low: 'bg-green-400 text-gray-900',
+  high: 'bg-red-500 text-white',
+  medium: 'bg-yellow-400 text-white',
+  low: 'bg-green-400 text-white',
 };
 
 // For demo, assign tasks to columns by id or status
@@ -25,12 +26,21 @@ const getColumnTasks = (tasks) => ({
   completed: tasks.filter(t => t.status === 'completed'),
 });
 
-const Tasks = ({ onLogout, projects, projectTasks }) => {
+const Tasks = ({ onLogout, projects = [], projectTasks = [], userInfo = {} }) => {
   // const { tasks, addTask, updateTask } = useTasks();
-  const [tasks, setTasks] = useState(projectTasks);
+  const [tasks, setTasks] = useState(Array.isArray(projectTasks) ? projectTasks : []);
+  const [username, setUsername] = useState("");
   const [loading, setLoading] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [activeTab, setActiveTab] = useState('board'); // 'board', 'dashboard', 'files'
+
+  // Fetch user info from token once on mount
+  useEffect(() => {
+    const result = isTokenValid();
+    if (result && result.isValid) {
+      setUsername(result.username || "");
+    }
+  }, []);
 
   // Fetch all tasks from API
   // useEffect(() => {
@@ -98,9 +108,9 @@ const Tasks = ({ onLogout, projects, projectTasks }) => {
   const renderBoardView = () => (
     <div className="flex gap-4 w-full overflow-x-auto pb-8 min-h-[70vh]">
       {columns.map(col => (
-        <div key={col.key} className="bg-gray-300 rounded-xl min-w-[300px] w-72 flex flex-col p-3 flex-1">
+        <div key={col.key} className="bg-gray-100 rounded-xl min-w-[300px] w-72 flex flex-col p-4 flex-1">
           <div className="flex items-center justify-between mb-2">
-            <div className="font-semibold text-black text-base flex items-center gap-2">
+            <div className="text-black text-base flex items-center gap-2">
               {col.title}
               <span className="bg-gray-700 text-gray-200 text-xs rounded-full px-2 py-0.5 ml-1">{columnTasks[col.key]?.length || 0}</span>
             </div>
@@ -113,7 +123,7 @@ const Tasks = ({ onLogout, projects, projectTasks }) => {
                 onClick={() => setSelectedTask({ ...task, projectName: getProjectName(task) })}
               >
                 <div className="flex items-center gap-2 mb-1">
-                  <button
+                  {/* <button
                     onClick={e => { e.stopPropagation(); toggleComplete(task.id); }}
                     className={`w-6 h-6 flex items-center justify-center rounded-full border-2 transition-colors duration-200 ${task.completed ? 'border-green-400 bg-green-400' : 'border-gray-400 bg-transparent hover:border-cyan-400'}`}
                     aria-label={task.completed ? 'Mark as incomplete' : 'Mark as complete'}
@@ -123,8 +133,8 @@ const Tasks = ({ onLogout, projects, projectTasks }) => {
                     ) : (
                       <span className="block w-3 h-3 rounded-full bg-transparent"></span>
                     )}
-                  </button>
-                  <div className={`font-medium text-black ${task.completed ? 'line-through text-gray-400' : ''}`}>{task.title}</div>
+                  </button> */}
+                  <div className={`font-medium text-black ${task.status === "completed" ? 'line-through text-gray-400' : ''}`}>{task.title}</div>
                 </div>
                 <div className="flex items-center gap-2 mt-1">
                   <span className={`px-2 py-1 rounded text-xs font-semibold ${priorityColors[task.priority]}`}>{task.priority}</span>
@@ -155,27 +165,27 @@ const Tasks = ({ onLogout, projects, projectTasks }) => {
       {/* Board Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-yellow-400 flex items-center justify-center font-bold text-lg text-gray-900">WB</div>
-          <h1 className="text-2xl font-bold text-white">My tasks</h1>
+          <div className="w-10 h-10 rounded-full bg-yellow-400 flex items-center justify-center font-bold text-lg text-gray-900">{username ? username.charAt(0).toUpperCase() : "?"}</div>
+          <h1 className="text-2xl font-bold text-gray-900">My Tasks</h1>
         </div>
       </div>
       {/* Board Tabs and Options */}
       <div className="flex items-center gap-6 mb-4">
         <div className="flex gap-2">
           <button
-            className={`px-2 pb-1 font-medium ${activeTab === 'board' ? 'text-black/80 border-b-2 border-blue-500' : 'text-black/40 hover:text-white/80'}`}
+            className={`px-2 pb-1 font-medium ${activeTab === 'board' ? 'text-black/80 border-b-2 border-blue-500' : 'text-black/40 hover:text-black/20'}`}
             onClick={() => setActiveTab('board')}
           >
             Board
           </button>
-          <button
-            className={`px-2 pb-1 font-medium ${activeTab === 'dashboard' ? 'text-black/80 border-b-2 border-blue-500' : 'text-black/40 hover:text-white/80'}`}
+          {/* <button
+            className={`px-2 pb-1 font-medium ${activeTab === 'dashboard' ? 'text-black/80 border-b-2 border-blue-500' : 'text-black/40 hover:text-black/20'}`}
             onClick={() => setActiveTab('dashboard')}
           >
             Dashboard
-          </button>
+          </button> */}
           <button
-            className={`px-2 pb-1 font-medium ${activeTab === 'files' ? 'text-black/80 border-b-2 border-blue-500' : 'text-black/40 hover:text-white/80'}`}
+            className={`px-2 pb-1 font-medium ${activeTab === 'files' ? 'text-black/80 border-b-2 border-blue-500' : 'text-black/40 hover:text-black/20'}`}
             onClick={() => setActiveTab('files')}
           >
             Files

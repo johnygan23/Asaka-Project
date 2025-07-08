@@ -115,7 +115,7 @@ const Header = ({ onToggleSidebar, onLogout }) => {
           {/* Dropdown Menu */}
           {showCreateDropdown && (
             <div className="absolute top-full left-0 mt-2 w-42 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-              <button
+              {/* <button
                 onClick={() => setShowCreateDropdown(false)}
                 className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-3"
               >
@@ -125,7 +125,7 @@ const Header = ({ onToggleSidebar, onLogout }) => {
                   className="w-5 h-5 flex-shrink-0"
                 />
                 <span className="text-gray-700">Task</span>
-              </button>
+              </button> */}
 
               <button
                 onClick={handleCreateProject}
@@ -139,7 +139,7 @@ const Header = ({ onToggleSidebar, onLogout }) => {
                 <span className="text-gray-700">Project</span>
               </button>
 
-              <button
+              {/* <button
                 onClick={() => setShowCreateDropdown(false)}
                 className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-3"
               >
@@ -149,9 +149,9 @@ const Header = ({ onToggleSidebar, onLogout }) => {
                   className="w-5 h-5 flex-shrink-0"
                 />
                 <span className="text-gray-700">Message</span>
-              </button>
+              </button> */}
 
-              <button
+              {/* <button
                 onClick={() => setShowCreateDropdown(false)}
                 className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-3"
               >
@@ -161,11 +161,11 @@ const Header = ({ onToggleSidebar, onLogout }) => {
                   className="w-5 h-5 flex-shrink-0"
                 />
                 <span className="text-gray-700">Team</span>
-              </button>
+              </button> */}
 
-              <div className="border-t border-gray-200 my-2"></div>
+              {/* <div className="border-t border-gray-200 my-2"></div> */}
 
-              <button
+              {/* <button
                 onClick={() => setShowCreateDropdown(false)}
                 className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-3"
               >
@@ -175,7 +175,7 @@ const Header = ({ onToggleSidebar, onLogout }) => {
                   className="w-5 h-5 flex-shrink-0"
                 />
                 <span className="text-gray-700">Invite</span>
-              </button>
+              </button> */}
             </div>
           )}
         </div>
@@ -205,6 +205,56 @@ const Header = ({ onToggleSidebar, onLogout }) => {
             placeholder="Search"
           />
         </div>
+
+        {/* Search Bar dropdown prototype */}
+        {/* {showProfileDropdown && (
+          <div className="absolute top-0 mt-2 w-72 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+            <div className="px-4 py-3 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                  {username ? username.charAt(0).toUpperCase() : "?"}
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-800">{username || "User"}</p>
+                  <p className="text-sm text-gray-500">{email}</p>
+                </div>
+              </div>
+            </div>
+            <div className="py-2">
+              <button
+                onClick={() => {
+                  // navigate to profile page
+                  setShowProfileDropdown(false);
+                }}
+                className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-3"
+              >
+                <img
+                  src={UserProfileIcon}
+                  alt="Profile"
+                  className="w-5 h-5 flex-shrink-0"
+                />
+                <span className="text-gray-700">Profile</span>
+              </button>
+            </div>
+            <div className="border-t border-gray-200 my-0"></div>
+            <div className="py-2">
+              <button
+                onClick={() => {
+                  onLogout();
+                  setShowProfileDropdown(false);
+                }}
+                className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-3"
+              >
+                <img
+                  src={LogoutIcon}
+                  alt="Logout"
+                  className="w-5 h-5 flex-shrink-0"
+                />
+                <span className="text-gray-700">Log out</span>
+              </button>
+            </div>
+          </div>
+        )} */}
       </div>
 
       {/* Right Section - User Profile */}

@@ -1,38 +1,89 @@
 import { useState, useEffect } from 'react';
 import { people as initialMembers } from '../data/people';
-import { projectGoalsMap } from '../data/project';
 import { projectColors } from '../data/colors';
+import { updateProject } from '../API/ProjectAPI';
 
-const ProjectOverview = ({ project }) => {
+const ProjectOverview = ({ project, onUpdateProject }) => {
     const [description, setDescription] = useState('');
     const [isEditingDescription, setIsEditingDescription] = useState(false);
-
+    const [goal, setGoal] = useState('');
+    const [isEditingGoal, setIsEditingGoal] = useState(false);
     const [members, setMembers] = useState(initialMembers);
-    const [goals, setGoals] = useState([]);
 
     useEffect(() => {
         if (project) {
             setDescription(project.description || 'Click to add a description.');
-            setGoals(projectGoalsMap[project.id] || []);
+            setGoal(project.goal || 'Click to add a project goal.');
         }
     }, [project]);
 
     const [showAddMemberModal, setShowAddMemberModal] = useState(false);
-    const [showAddGoalModal, setShowAddGoalModal] = useState(false);
-
     const [newMember, setNewMember] = useState({ identifier: '', role: 'Member' });
-    const [newGoal, setNewGoal] = useState({ title: '', description: '', startDate: '', endDate: '' });
 
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'Completed': return 'bg-green-100 text-green-800';
-            case 'In Progress': return 'bg-yellow-100 text-yellow-800';
-            case 'Upcoming': return 'bg-gray-100 text-gray-800';
-            default: return 'bg-gray-100 text-gray-800';
+    // Editable fields state
+    const [detailsEditMode, setDetailsEditMode] = useState(false);
+    const [editValues, setEditValues] = useState({
+        goal: project.goal || '',
+        priority: project.priority || 'Medium',
+        status: project.status || 'NotStarted',
+        startDate: project.startDate ? project.startDate.slice(0, 10) : '',
+        endDate: project.endDate ? project.endDate.slice(0, 10) : '',
+    });
+
+    useEffect(() => {
+        setEditValues({
+            priority: project.priority || 'Medium',
+            status: project.status || 'NotStarted',
+            startDate: project.startDate ? project.startDate.slice(0, 10) : '',
+            endDate: project.endDate ? project.endDate.slice(0, 10) : '',
+        });
+    }, [project]);
+
+    const handleSaveDetails = async () => {
+        const payload = {
+            goal: editValues.goal,
+            priority: editValues.priority,
+            status: editValues.status,
+            startDate: editValues.startDate,
+            endDate: editValues.endDate,
+        };
+        try {
+            await updateProject(project.id, payload);
+            onUpdateProject?.(project.id, payload);
+            setDetailsEditMode(false);
+        } catch (error) {
+            console.error('Failed to update project details', error);
         }
     };
 
-    const getInitials = (name) => (name || '').split(' ').map(n => n[0]).join('').toUpperCase();
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'Completed':
+                return 'bg-green-100 text-green-800';
+            case 'In Progress':
+            case 'Active':
+                return 'bg-yellow-100 text-yellow-800';
+            case 'Paused':
+                return 'bg-gray-100 text-gray-800';
+            case 'NotStarted':
+                return 'bg-gray-50 text-gray-600';
+            default:
+                return 'bg-gray-100 text-gray-800';
+        }
+    };
+
+    const getPriorityColor = (priority) => {
+        switch (priority) {
+            case 'High':
+                return 'bg-red-100 text-red-800';
+            case 'Medium':
+                return 'bg-yellow-100 text-yellow-800';
+            case 'Low':
+                return 'bg-green-100 text-green-800';
+            default:
+                return 'bg-gray-100 text-gray-800';
+        }
+    };
 
     const handleAddMember = (e) => {
         e.preventDefault();
@@ -54,22 +105,7 @@ const ProjectOverview = ({ project }) => {
         }
     };
 
-    const handleAddGoal = (e) => {
-        e.preventDefault();
-        if (newGoal.title && newGoal.startDate && newGoal.endDate) {
-            const goal = {
-                id: goals.length + 1,
-                title: newGoal.title,
-                description: newGoal.description,
-                dateRange: `${new Date(newGoal.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${new Date(newGoal.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
-                status: 'Upcoming',
-                progress: 0
-            };
-            setGoals([...goals, goal]);
-            setNewGoal({ title: '', description: '', startDate: '', endDate: '' });
-            setShowAddGoalModal(false);
-        }
-    };
+    const getInitials = (name) => (name || '').split(' ').map(n => n[0]).join('').toUpperCase();
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -111,49 +147,129 @@ const ProjectOverview = ({ project }) => {
                     )}
                 </div>
 
-                {/* Project Goals */}
+                {/* Project Details */}
                 <div className="bg-white rounded-lg shadow p-6">
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-lg font-semibold text-gray-900">Project Goals</h3>
-                        <button
-                            onClick={() => setShowAddGoalModal(true)}
-                            className="text-sm bg-cyan-500 text-white px-3 py-1.5 rounded-lg hover:bg-cyan-600 transition-colors flex items-center gap-1"
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                            </svg>
-                            Add Goal
-                        </button>
+                    <div className="flex items-start justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900">Project Details</h3>
+                        {detailsEditMode ? (
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={handleSaveDetails}
+                                    className="px-3 py-1 rounded-lg bg-cyan-500 text-white text-sm hover:bg-cyan-600"
+                                >
+                                    Save
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setDetailsEditMode(false);
+                                        setEditValues({
+                                            goal: project.goal || '',
+                                            priority: project.priority || 'Medium',
+                                            status: project.status || 'NotStarted',
+                                            startDate: project.startDate ? project.startDate.slice(0, 10) : '',
+                                            endDate: project.endDate ? project.endDate.slice(0, 10) : '',
+                                        });
+                                    }}
+                                    className="px-3 py-1 rounded-lg bg-gray-200 text-gray-700 text-sm hover:bg-gray-300"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => setDetailsEditMode(true)}
+                                className="px-3 py-1 rounded-lg bg-gray-100 text-gray-700 text-sm hover:bg-gray-200"
+                            >
+                                Edit
+                            </button>
+                        )}
                     </div>
 
-                    <div className="space-y-4">
-                        {goals.map((goal) => (
-                            <div key={goal.id} className="border-l-4 border-cyan-500 pl-4 py-2">
-                                <div className="flex items-start justify-between">
-                                    <div className="flex-1">
-                                        <h4 className="font-medium text-gray-900">{goal.title}</h4>
-                                        {goal.description && <p className="text-sm text-gray-600 mt-1">{goal.description}</p>}
-                                        <div className="mt-2">
-                                            <div className="w-full bg-gray-200 rounded-full h-2">
-                                                <div
-                                                    className="bg-cyan-500 h-2 rounded-full"
-                                                    style={{ width: `${goal.progress}%` }}
-                                                ></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="text-right ml-4">
-                                        <span className="text-xs text-gray-500">{goal.dateRange}</span>
-                                        <div className="mt-1">
-                                            <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(goal.status)}`}>
-                                                {goal.status}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
+                    {detailsEditMode ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {/* Goal */}
+                            <div className="sm:col-span-2">
+                                <label className="block text-sm text-gray-500 mb-1">Goal</label>
+                                <input
+                                    type="text"
+                                    value={editValues.goal}
+                                    onChange={(e) => setEditValues(v => ({ ...v, goal: e.target.value }))}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                                />
                             </div>
-                        ))}
-                    </div>
+                            {/* Priority */}
+                            <div>
+                                <label className="block text-sm text-gray-500 mb-1">Priority</label>
+                                <select
+                                    value={editValues.priority}
+                                    onChange={(e) => setEditValues(v => ({ ...v, priority: e.target.value }))}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                                >
+                                    <option>Low</option>
+                                    <option>Medium</option>
+                                    <option>High</option>
+                                </select>
+                            </div>
+                            {/* Status */}
+                            <div>
+                                <label className="block text-sm text-gray-500 mb-1">Status</label>
+                                <select
+                                    value={editValues.status}
+                                    onChange={(e) => setEditValues(v => ({ ...v, status: e.target.value }))}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                                >
+                                    <option>NotStarted</option>
+                                    <option>Active</option>
+                                    <option>Paused</option>
+                                    <option>Completed</option>
+                                    <option>Archived</option>
+                                </select>
+                            </div>
+                            {/* Start Date */}
+                            <div>
+                                <label className="block text-sm text-gray-500 mb-1">Start Date</label>
+                                <input
+                                    type="date"
+                                    value={editValues.startDate}
+                                    onChange={(e) => setEditValues(v => ({ ...v, startDate: e.target.value }))}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                                />
+                            </div>
+                            {/* End Date */}
+                            <div>
+                                <label className="block text-sm text-gray-500 mb-1">End Date</label>
+                                <input
+                                    type="date"
+                                    value={editValues.endDate}
+                                    onChange={(e) => setEditValues(v => ({ ...v, endDate: e.target.value }))}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
+                                />
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <p className="text-sm text-gray-500">Goal</p>
+                                <p className="font-medium text-gray-900 break-words whitespace-pre-wrap">{project.goal || '-'}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500">Priority</p>
+                                <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${getPriorityColor(project.priority)}`}>{project.priority}</span>
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500">Status</p>
+                                <span className={`inline-block px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(project.status)}`}>{project.status}</span>
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500">Start Date</p>
+                                <p className="font-medium text-gray-900">{project.startDate ? new Date(project.startDate).toLocaleDateString() : '-'}</p>
+                            </div>
+                            <div>
+                                <p className="text-sm text-gray-500">End Date</p>
+                                <p className="font-medium text-gray-900">{project.endDate ? new Date(project.endDate).toLocaleDateString() : '-'}</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -203,18 +319,6 @@ const ProjectOverview = ({ project }) => {
                     <h3 className="text-lg font-semibold text-gray-900 mb-4">Project Stats</h3>
                     <div className="space-y-4">
                         <div className="flex justify-between items-center">
-                            <span className="text-gray-600">Total Goals</span>
-                            <span className="font-semibold text-gray-900">{goals.length}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-gray-600">Completed</span>
-                            <span className="font-semibold text-green-600">{goals.filter(g => g.status === 'Completed').length}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                            <span className="text-gray-600">In Progress</span>
-                            <span className="font-semibold text-yellow-600">{goals.filter(g => g.status === 'In Progress').length}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
                             <span className="text-gray-600">Team Members</span>
                             <span className="font-semibold text-gray-900">{members.length}</span>
                         </div>
@@ -262,28 +366,6 @@ const ProjectOverview = ({ project }) => {
                 </div>
             )}
 
-            {/* Add Goal Modal */}
-            {showAddGoalModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white/95 backdrop-blur-sm rounded-lg p-6 w-full max-w-md">
-                        <h2 className="text-xl font-semibold text-gray-900 mb-4">Add Project Goal</h2>
-                        <form onSubmit={handleAddGoal}>
-                            <div className="space-y-4">
-                                <input type="text" value={newGoal.title} onChange={(e) => setNewGoal({ ...newGoal, title: e.target.value })} placeholder="Title" className="w-full p-2 border rounded" required />
-                                <textarea value={newGoal.description} onChange={(e) => setNewGoal({ ...newGoal, description: e.target.value })} placeholder="Description" className="w-full p-2 border rounded" />
-                                <div className="grid grid-cols-2 gap-4">
-                                    <input type="date" value={newGoal.startDate} onChange={(e) => setNewGoal({ ...newGoal, startDate: e.target.value })} className="w-full p-2 border rounded" required />
-                                    <input type="date" value={newGoal.endDate} onChange={(e) => setNewGoal({ ...newGoal, endDate: e.target.value })} className="w-full p-2 border rounded" required />
-                                </div>
-                            </div>
-                            <div className="flex gap-3 mt-6">
-                                <button type="submit" className="flex-1 bg-cyan-500 text-white py-2 rounded-lg">Add Goal</button>
-                                <button type="button" onClick={() => setShowAddGoalModal(false)} className="flex-1 bg-gray-200 py-2 rounded-lg">Cancel</button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };
