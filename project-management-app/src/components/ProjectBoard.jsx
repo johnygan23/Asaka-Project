@@ -141,7 +141,7 @@ const ProjectBoard = ({ projectId, projects = [] }) => {
                         <div className="mb-4 flex items-center justify-between">
                             <h3 className="font-medium text-gray-900">
                                 {col.title}
-                                <span className="ml-2 text-gray-500">{tasksForColumn.length}</span>
+                                <span className="bg-gray-700 text-gray-200 text-xs rounded-full px-2 py-0.5 ml-1">{tasksForColumn.length || 0}</span>
                             </h3>
                         </div>
                         {/* Inline Add Task Card */}
