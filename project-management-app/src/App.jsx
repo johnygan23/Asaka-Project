@@ -188,7 +188,7 @@ function App() {
           path="/tasks"
           element={
             <ProtectedRoute>
-              <Tasks onLogout={handleLogout} projects={projects} />
+              <Tasks onLogout={handleLogout} projects={projects} projectTasks={projectTasks} />
             </ProtectedRoute>
           }
         />

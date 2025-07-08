@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import HomeIcon from '../assets/home-smile-angle-svgrepo-com.svg';
 import InboxIcon from '../assets/notification-svgrepo-com.svg';
@@ -9,8 +9,18 @@ import LogoutIcon from '../assets/logout-svgrepo-com.svg';
 import { inboxMessages } from '../data/inbox';
 
 const Sidebar = ({ onLogout, projects = [] }) => {
-    const [projectsOpen, setProjectsOpen] = useState(false);
+    // Initialize state from localStorage, default to false if not found
+    const [projectsOpen, setProjectsOpen] = useState(() => {
+        const saved = localStorage.getItem('sidebarProjectsOpen');
+        return saved ? JSON.parse(saved) : false;
+    });
+    
     const unreadCount = inboxMessages.filter(m => !m.isRead).length;
+
+    // Save to localStorage whenever projectsOpen changes
+    useEffect(() => {
+        localStorage.setItem('sidebarProjectsOpen', JSON.stringify(projectsOpen));
+    }, [projectsOpen]);
 
     // Function to get NavLink classes with active state
     const getLinkClasses = ({ isActive }) => {
