@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { people } from '../data/people';
 import { FiPaperclip, FiX, FiDownload, FiFile } from 'react-icons/fi';
 import * as ProjectTaskAPI from '../API/ProjectTaskAPI';
+import { getAttachmentsByProjectTaskId, downloadAttachment, uploadAttachment, deleteAttachment } from '../API/AttachmentAPI';
 import * as CommentAPI from '../API/CommentAPI';
 
 const statusColors = {
@@ -69,9 +70,19 @@ function TaskDetailsModal({ task, onClose, onSave, projects, onAddComment }) {
       try {
         const response = await ProjectTaskAPI.getTaskById(task.id);
         const data = response?.data || response;
+
+        // Fetch attachments for this task from backend
+        const attachmentList = await getAttachmentsByProjectTaskId(task.id);
+        const attachments = attachmentList?.data || attachmentList || [];
+
         const responseComment = await CommentAPI.getAllComments();
         const dataComment = responseComment?.data || responseComment;
         if (isMounted) {
+          setEditTask({
+            ...data,
+            subtasks: data.subtasks || [],
+            attachments: attachments
+          });
           setEditTask({ ...data, subtasks: data.subtasks || [], attachments: data.attachments || [] });
           setTaskComments(Array.isArray(dataComment) ? dataComment : (dataComment.comments || []));
         }
@@ -136,32 +147,64 @@ function TaskDetailsModal({ task, onClose, onSave, projects, onAddComment }) {
     }));
   };
 
+  const handleGetAttachments = async () => {
+    try {
+      const attachmentList = await getAttachmentsByProjectTaskId(task.id);
+      // If the API returns { data: [...] }, use attachmentList.data; otherwise, use attachmentList
+      const attachments = attachmentList?.data || attachmentList || [];
+      setEditTask(prev => ({
+        ...prev,
+        attachments: attachments
+      }));
+    } catch (err) {
+      console.error("Failed to get attachments.", err);
+    }
+  }
   // File handling functions
-  const handleFileSelect = (event) => {
+  const handleFileSelect = async (event) => {
     const files = Array.from(event.target.files);
-    const newAttachments = files.map(file => ({
-      id: Date.now() + Math.random(),
-      name: file.name,
-      size: file.size,
-      type: file.type,
-      uploadedAt: new Date().toISOString(),
-      url: URL.createObjectURL(file) // In a real app, this would be uploaded to a server
-    }));
-    
-    setEditTask(prev => ({
-      ...prev,
-      attachments: [...(prev.attachments || []), ...newAttachments]
-    }));
-    
+    if (files.length === 0) return;
+  
+    const file = files[0]; // Only handle the first file
+  
+    try {
+      // Upload to backend
+      const uploaded = await uploadAttachment(editTask.id, file);
+  
+      setEditTask(prev => ({
+        ...prev,
+        attachments: [
+          ...(prev.attachments || []),
+          {
+            id: uploaded.id,
+            name: uploaded.attachmentName,
+            size: file.size,
+            type: file.type,
+            uploadedAt: new Date().toISOString(),
+            // Add more fields if needed from backend response
+          }
+        ]
+      }));
+    } catch (err) {
+      alert(`Failed to upload ${file.name}`);
+      console.error(err);
+    }
+  
     // Reset file input
     event.target.value = '';
   };
 
-  const handleRemoveAttachment = (attachmentId) => {
-    setEditTask(prev => ({
-      ...prev,
-      attachments: prev.attachments.filter(att => att.id !== attachmentId)
-    }));
+  const handleRemoveAttachment = async (attachmentId) => {
+    try {
+      await deleteAttachment(attachmentId);
+      setEditTask(prev => ({
+        ...prev,
+        attachments: prev.attachments.filter(att => att.id !== attachmentId)
+      }));
+    } catch (err) {
+      alert('Failed to delete attachment.');
+      console.error(err);
+    }
   };
 
   const formatFileSize = (bytes) => {
@@ -181,6 +224,24 @@ function TaskDetailsModal({ task, onClose, onSave, projects, onAddComment }) {
     if (fileType.includes('excel') || fileType.includes('spreadsheet')) return '📊';
     if (fileType.includes('powerpoint') || fileType.includes('presentation')) return '📈';
     return '📎';
+  };
+
+  // Download attachment handler
+  const handleDownloadAttachment = async (attachment) => {
+    try {
+      const blob = await downloadAttachment(attachment.id);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = attachment.name || attachment.attachmentName || 'attachment';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      alert('Failed to download attachment.');
+      console.error(err);
+    }
   };
 
   // Add comment handler
@@ -372,10 +433,17 @@ function TaskDetailsModal({ task, onClose, onSave, projects, onAddComment }) {
               <div className="space-y-2 mb-3">
                 {editTask.attachments.map(attachment => (
                   <div key={attachment.id} className="flex items-center gap-3 bg-gray-100 rounded-lg p-3">
-                    <span className="text-xl">{getFileIcon(attachment.type)}</span>
+                    <span className="text-xl">{getFileIcon(attachment.type || '')}</span>
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-sm truncate">{attachment.name}</div>
-                      <div className="text-xs text-gray-500">{formatFileSize(attachment.size)}</div>
+                      <button
+                        className="font-medium text-sm truncate text-cyan-700 hover:underline bg-transparent border-none p-0 m-0 cursor-pointer"
+                        style={{ background: 'none' }}
+                        onClick={() => handleDownloadAttachment(attachment)}
+                        title="Download attachment"
+                      >
+                        {attachment.name || attachment.attachmentName}
+                      </button>
+                      {attachment.size && <div className="text-xs text-gray-500">{formatFileSize(attachment.size)}</div>}
                     </div>
                     <button
                       onClick={() => handleRemoveAttachment(attachment.id)}
@@ -392,7 +460,7 @@ function TaskDetailsModal({ task, onClose, onSave, projects, onAddComment }) {
               <input
                 ref={fileInputRef}
                 type="file"
-                multiple
+                multiple={false}
                 onChange={handleFileSelect}
                 className="hidden"
                 accept="*/*"
@@ -404,6 +472,8 @@ function TaskDetailsModal({ task, onClose, onSave, projects, onAddComment }) {
                 <FiPaperclip size={16} />
                 Add files
               </button>
+
+              {/* get attachment button removed, attachments are now loaded automatically */}
             </div>
           </div>
           {/* Subtasks */}
@@ -510,7 +580,7 @@ function TaskDetailsModal({ task, onClose, onSave, projects, onAddComment }) {
           Save
         </button>
       </div>
-      <style jsx>{`
+      <style>{`
         .animate-slide-in {
           transform: translateX(100%);
           animation: slideInDrawer 0.3s forwards;
