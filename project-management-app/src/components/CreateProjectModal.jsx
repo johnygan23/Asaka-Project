@@ -7,8 +7,8 @@ const CreateProjectModal = ({ onClose, onCreate, projectsCount = 0 }) => {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [goal, setGoal] = useState('');
-    const [priority, setPriority] = useState('Medium');
-    const [status, setStatus] = useState('NotStarted');
+    const [priority, setPriority] = useState('low');
+    const [status, setStatus] = useState('active');
     const initialColor = projectColors[projectsCount % projectColors.length];
     const [color, setColor] = useState(initialColor);
     const [startDate, setStartDate] = useState('');
