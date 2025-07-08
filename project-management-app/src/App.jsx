@@ -1,6 +1,5 @@
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import Projects from './pages/Projects';
 import Tasks from './pages/Tasks';
 import Login from './pages/Login';
 import Home from './pages/Home';
@@ -215,20 +214,12 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/projects"
-          element={
-            <ProtectedRoute>
-              <Projects onLogout={handleLogout} />
-            </ProtectedRoute>
-          }
-        />
         {/* Project Details */}
         <Route
           path="/projects/:projectId"
           element={
             <ProtectedRoute>
-              <ProjectDetails onLogout={handleLogout} projects={projects} onUpdateProject={handleUpdateProject} users={users} />
+              <ProjectDetails onLogout={handleLogout} projects={projects} projectTasks={projectTasks} onUpdateProject={handleUpdateProject} users={users} />
             </ProtectedRoute>
           }
         />

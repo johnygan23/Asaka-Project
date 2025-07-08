@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { people } from '../data/people';
 import { FiPaperclip, FiX, FiDownload, FiFile } from 'react-icons/fi';
 import * as ProjectTaskAPI from '../API/ProjectTaskAPI';
 import * as CommentAPI from '../API/CommentAPI';
 import { getUserId } from '../API/AuthAPI';
+import CalendarIcon from '../assets/calendar-days-svgrepo-com.svg';
 
 const statusColors = {
   completed: 'bg-green-700 text-white',
@@ -15,7 +15,6 @@ const priorityColors = {
   low: 'bg-green-400 text-gray-900',
   medium: 'bg-yellow-400 text-gray-900',
   high: 'bg-orange-400 text-white',
-  urgent: 'bg-red-500 text-white',
 };
 
 function TaskDetailsModal({ task, onClose, onSave, projects, onAddComment }) {
@@ -75,7 +74,7 @@ function TaskDetailsModal({ task, onClose, onSave, projects, onAddComment }) {
   }, [onClose]);
 
   useEffect(() => {
-    
+
     const fetchTaskandComment = async () => {
       if (!task?.id) return;
       setLoading(true);
@@ -87,12 +86,12 @@ function TaskDetailsModal({ task, onClose, onSave, projects, onAddComment }) {
         const dataComment = responseComment?.data || responseComment;
         const responseAllTasks = await ProjectTaskAPI.getAllTasks();
         const dataAllTasks = responseAllTasks?.data || responseAllTasks;
-        
-          console.log('Fetched task data:', data);
-          setEditTask({ ...data, attachments: data.attachments || [] });
-          setTaskComments(Array.isArray(dataComment) ? dataComment : (dataComment.comments || []));
-          setAllTasks(Array.isArray(dataAllTasks) ? dataAllTasks : []);
-          setSubtasks(dataAllTasks.filter(t => t.nestedLevel === 1 && t.parentId === task.id));
+
+        console.log('Fetched task data:', data);
+        setEditTask({ ...data, attachments: data.attachments || [] });
+        setTaskComments(Array.isArray(dataComment) ? dataComment : (dataComment.comments || []));
+        setAllTasks(Array.isArray(dataAllTasks) ? dataAllTasks : []);
+        setSubtasks(dataAllTasks.filter(t => t.nestedLevel === 1 && t.parentId === task.id));
 
       } catch (error) {
         // Optionally handle error
@@ -105,6 +104,7 @@ function TaskDetailsModal({ task, onClose, onSave, projects, onAddComment }) {
     // return () => { isMounted = false; };
   }, [task?.id]);
 
+<<<<<<< Updated upstream
   // Filter people by query
   const filteredPeople = assigneeQuery
     ? people.filter(p =>
@@ -113,6 +113,8 @@ function TaskDetailsModal({ task, onClose, onSave, projects, onAddComment }) {
       )
     : people;
 
+=======
+>>>>>>> Stashed changes
   const handleSave = () => {
     onSave(editTask);
     onClose();
@@ -126,7 +128,7 @@ function TaskDetailsModal({ task, onClose, onSave, projects, onAddComment }) {
     try {
       console.log('About to call addSubtask', task.id, newSubtask);
       const userId = await getUserId();
-      const response = await ProjectTaskAPI.addSubtask(task.id, userId, {...newSubtask});
+      const response = await ProjectTaskAPI.addSubtask(task.id, userId, { ...newSubtask });
       console.log('addSubtask response:', response);
       const createdSubtask = response.data || response;
       // setEditTask(t => ({
@@ -280,6 +282,7 @@ function TaskDetailsModal({ task, onClose, onSave, projects, onAddComment }) {
                     <span className="font-medium">{editTask.assignee.name}</span>
                     <span className="text-xs text-gray-500">{editTask.assignee.email}</span>
                   </div>
+<<<<<<< Updated upstream
                   <button
                     className="ml-2 text-gray-400 hover:text-red-500 text-lg font-bold"
                     onClick={() => setEditTask(t => ({ ...t, assignee: null }))}
@@ -287,6 +290,62 @@ function TaskDetailsModal({ task, onClose, onSave, projects, onAddComment }) {
                   >
                     ×
                   </button>
+=======
+                ) : (
+                  <div className="relative">
+                    <input
+                      ref={assigneeInputRef}
+                      type="text"
+                      className="w-full bg-gray-100 rounded-lg px-3 py-2 text-black focus:outline-none"
+                      placeholder="Name or email"
+                      value={assigneeQuery}
+                      onChange={e => {
+                        setAssigneeQuery(e.target.value);
+                        setShowAssigneeDropdown(true);
+                      }}
+                      onFocus={() => setShowAssigneeDropdown(true)}
+                      onBlur={() => setTimeout(() => setShowAssigneeDropdown(false), 150)}
+                      autoComplete="off"
+                    />
+                    {showAssigneeDropdown && filteredPeople.length > 0 && (
+                      <div className="absolute left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-56 overflow-y-auto">
+                        {filteredPeople.map(person => (
+                          <button
+                            key={person.id}
+                            className="w-full flex items-center gap-3 px-4 py-2 hover:bg-gray-100 text-left"
+                            onMouseDown={e => {
+                              e.preventDefault();
+                              setEditTask(t => ({ ...t, assignee: person }));
+                              setAssigneeQuery('');
+                              setShowAssigneeDropdown(false);
+                            }}
+                          >
+                            <span className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-base ${person.color} text-white`}>
+                              {person.initials}
+                            </span>
+                            <div className="flex flex-col items-start">
+                              <span className="font-medium">{person.name}</span>
+                              <span className="text-xs text-gray-500">{person.email}</span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              {/* Due date */}
+              <div>
+                <div className="text-sm text-gray-500 mb-1">Due date</div>
+                <div className="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2">
+                  <img src={CalendarIcon} alt="Calendar" className="w-5 h-5" />
+                  <input
+                    type="date"
+                    className="bg-transparent text-black focus:outline-none"
+                    value={editTask.endDate ? editTask.endDate.slice(0, 10) : ''}
+                    onChange={e => setEditTask(t => ({ ...t, endDate: e.target.value }))}
+                  />
+>>>>>>> Stashed changes
                 </div>
               ) : (
                 <div className="relative">
@@ -503,7 +562,6 @@ function TaskDetailsModal({ task, onClose, onSave, projects, onAddComment }) {
                       <option value="low">Low</option>
                       <option value="medium">Medium</option>
                       <option value="high">High</option>
-                      <option value="urgent">Urgent</option>
                     </select>
                     <select
                       className="border rounded px-2 py-1 flex-1"
