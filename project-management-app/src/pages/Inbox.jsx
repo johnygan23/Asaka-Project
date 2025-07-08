@@ -1,12 +1,14 @@
 import { useState, useMemo } from 'react';
 import Layout from '../components/Layout';
-import { inboxMessages } from '../data/inbox';
+// import { inboxMessages } from '../data/inbox';
 
-const Inbox = ({ onLogout, projects = [] }) => {
-    const [messages, setMessages] = useState(inboxMessages);
+const Inbox = ({ onLogout, projects, notifications }) => {
+    const [messages, setMessages] = useState(notifications);
     const [selectedFilter, setSelectedFilter] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedMessage, setSelectedMessage] = useState(null);
+
+    console.log('notifications:', notifications);
 
     // Filter messages based on selected filter and search query
     const filteredMessages = useMemo(() => {
@@ -82,7 +84,7 @@ const Inbox = ({ onLogout, projects = [] }) => {
     ];
 
     return (
-        <Layout onLogout={onLogout} projects={projects}>
+        <Layout onLogout={onLogout} projects={projects} >
             <div className="flex-1 flex flex-col bg-gray-50 min-h-screen">
                 <div className="flex-1 flex flex-col items-center justify-start px-4 py-8">
                     {/* Header */}

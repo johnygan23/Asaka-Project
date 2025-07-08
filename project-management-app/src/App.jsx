@@ -13,6 +13,7 @@ import { loginAsync, signupAsync, isTokenValid, refreshTokens, getUserId } from 
 import * as ProjectAPI from './API/ProjectAPI';
 import { getAllUsers } from './API/UserAPI';
 import * as ProjectTaskAPI from './API/ProjectTaskAPI';
+import { getAllComments } from './API/CommentAPI';
 import CreateProjectModal from './components/CreateProjectModal';
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
   const [loadingProjects, setLoadingProjects] = useState(true);
   // State to control the global Create Project modal
   const [showCreateProjectModal, setShowCreateProjectModal] = useState(false);
+  const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
     async function runApp() {
@@ -70,6 +72,7 @@ function App() {
     await fetchProjects();
     await fetchUsers();
     await fetchProjectTasks();
+    await fetchNotifications();
   }
 
   const fetchUsers = async () => {
@@ -81,7 +84,7 @@ function App() {
     } catch (error) {
       setUsers([]);
     }
-  }
+  };
 
   const fetchProjects = async () => {
     setLoadingProjects(true);
@@ -108,6 +111,17 @@ function App() {
       console.error('Error fetching assigned project tasks:', error);
     }
   };
+
+  const fetchNotifications = async () => {
+    try {
+      const response = await getAllNotifications();
+      const data = response.data;
+      console.log("Retrieved notifications: ", data);
+      setNotifications(Array.isArray(data) ? data : (data.notifications || []));
+    } catch (error) {
+      setNotifications([]);
+    }
+  }
 
   const handleLogin = async (formData) => {
     try {
@@ -188,7 +202,7 @@ function App() {
           path="/tasks"
           element={
             <ProtectedRoute>
-              <Tasks onLogout={handleLogout} projects={projects} projectTasks={projectTasks} />
+              <Tasks onLogout={handleLogout} projects={projects} projectTasks={projectTasks}/>
             </ProtectedRoute>
           }
         />
@@ -213,7 +227,7 @@ function App() {
           path="/inbox"
           element={
             <ProtectedRoute>
-              <Inbox onLogout={handleLogout} projects={projects} />
+              <Inbox onLogout={handleLogout} projects={projects} notifications={notifications} />
             </ProtectedRoute>
           }
         />
