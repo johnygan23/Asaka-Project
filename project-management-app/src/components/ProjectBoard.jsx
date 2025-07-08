@@ -16,9 +16,9 @@ const getColumnTasks = (tasks) => ({
     completed: tasks.filter(t => t.status === 'completed'),
 });
 
-const getPriorityStyles = (priorityObj) => {
-    if (!priorityObj) return '';
-    switch (priorityObj.value) {
+const getPriorityStyles = (priority) => {
+    if (!priority) return '';
+    switch (priority) {
         case 'low':
             return 'bg-gray-100 text-gray-800';
         case 'medium':
@@ -136,7 +136,7 @@ const ProjectBoard = ({ projectId, projects = [] }) => {
             {columns.map(col => {
                 const tasksForColumn = columnTasks[col.key];
                 return (
-                    <div key={col.key} className="flex-shrink-0 w-80 rounded-lg bg-gray-100">
+                    <div key={col.key} className="p-4 flex-shrink-0 w-80 rounded-lg bg-gray-100">
                         {/* Column Header */}
                         <div className="mb-4 flex items-center justify-between">
                             <h3 className="font-medium text-gray-900">
@@ -217,9 +217,15 @@ const ProjectBoard = ({ projectId, projects = [] }) => {
                                         ))}
                                     </select>
                                 </div>
-                                <div className="flex items-center gap-2 mt-1 relative">
+                                <div className="flex justify-end items-center gap-2 mt-1 relative">
                                     <button
-                                        className="ml-auto px-2 py-1 text-blue-500 hover:text-blue-700 text-sm font-medium"
+                                        className="px-2 py-1 text-gray-500 text-sm font-medium"
+                                        onClick={() => {setInlineAddStatus(null); setInlineTask({ title: '', description: '', startDate: '', priority: 'medium', status: col.key, dueDate: '' }); setShowDatePicker(false);}}
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        className="px-2 py-1 text-blue-500 hover:text-blue-700 text-sm font-medium"
                                         onClick={() => handleInlineAdd(col.key)}
                                     >
                                         Add
@@ -238,7 +244,7 @@ const ProjectBoard = ({ projectId, projects = [] }) => {
                             </button>
                         )}
                         {/* Tasks Container */}
-                        <div className="space-y-3 min-h-[20px]">
+                        <div className="mt-4 space-y-3 min-h-[20px]">
                             {tasksForColumn.map((task, index) => (
                                 <div
                                     key={task.id}
