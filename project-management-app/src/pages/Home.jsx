@@ -15,9 +15,9 @@ const getToday = () => {
 };
 
 const priorityColors = {
-    High: 'bg-red-500 text-white',
-    Medium: 'bg-yellow-400 text-gray-900',
-    Low: 'bg-green-400 text-gray-900',
+    high: 'bg-red-500 text-white',
+    medium: 'bg-yellow-400 text-white',
+    low: 'bg-green-400 text-white',
 };
 
 function DonutChart({ completed, incomplete, completedColor, incompleteColor, textColor = '#fff' }) {
@@ -51,7 +51,7 @@ function DonutChart({ completed, incomplete, completedColor, incompleteColor, te
 }
 
 const Home = ({ onLogout, projects, projectTasks, userInfo }) => {
-    const [tab, setTab] = useState('upcoming');
+    const [tab, setTab] = useState('all');
     const userName = Utils.capitalizeEachWord(userInfo.username);
     const [tasks, setTasks] = useState(projectTasks);
     const [notepad, setNotepad] = useState('');
@@ -62,6 +62,8 @@ const Home = ({ onLogout, projects, projectTasks, userInfo }) => {
     const upcomingTasks = tasks.filter(t => Date.parse(t.startDate) > Date.now()).length;
 
     const filteredTasks = tasks.filter(t => {
+        if (tab === 'all') return t.status !== null;
+        if (tab === 'todo') return t.status === "todo";
         if (tab === 'completed') return t.status === "completed";
         if (tab === 'overdue') return (Date.parse(t.endDate) < Date.now()) && t.status !== "completed";
         if (tab === 'upcoming') return (Date.parse(t.startDate) > Date.now()) && t.status !== "completed";
@@ -113,16 +115,15 @@ const Home = ({ onLogout, projects, projectTasks, userInfo }) => {
                     <div className="w-full max-w-4xl bg-white rounded-2xl shadow-lg p-0 border border-gray-200 mb-8">
                         <div className="flex items-center gap-4 px-8 pt-8 pb-2">
                             <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-2xl text-gray-400">
-                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-8 h-8"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 15c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className='w-8 h-8'><path strokeLinecap="round" strokeLinejoin="round" d="M6 6.878V6a2.25 2.25 0 0 1 2.25-2.25h7.5A2.25 2.25 0 0 1 18 6v.878m-12 0c.235-.083.487-.128.75-.128h10.5c.263 0 .515.045.75.128m-12 0A2.25 2.25 0 0 0 4.5 9v.878m13.5-3A2.25 2.25 0 0 1 19.5 9v.878m0 0a2.246 2.246 0 0 0-.75-.128H5.25c-.263 0-.515.045-.75.128m15 0A2.25 2.25 0 0 1 21 12v6a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 18v-6c0-.98.626-1.813 1.5-2.122" /></svg>
                             </div>
                             <div>
-                                <div className="text-xl font-semibold text-gray-900">My tasks</div>
-                                <div className="text-gray-500 text-sm">Widget</div>
+                                <div className="text-xl font-semibold text-gray-900">My Tasks</div>
                             </div>
                         </div>
                         {/* Tabs */}
                         <div className="flex gap-2 px-8 mt-6 border-b border-gray-200">
-                            {['upcoming', 'overdue', 'completed'].map(t => (
+                            {['all', 'todo', 'upcoming', 'overdue', 'completed'].map(t => (
                                 <button
                                     key={t}
                                     onClick={() => setTab(t)}
