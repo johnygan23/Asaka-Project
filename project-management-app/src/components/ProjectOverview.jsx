@@ -6,18 +6,18 @@ import { updateProject } from '../API/ProjectAPI';
 const ProjectOverview = ({ project, onUpdateProject }) => {
     const [description, setDescription] = useState('');
     const [isEditingDescription, setIsEditingDescription] = useState(false);
-
+    const [goal, setGoal] = useState('');
+    const [isEditingGoal, setIsEditingGoal] = useState(false);
     const [members, setMembers] = useState(initialMembers);
-    // Removed project goals list; project now has a single goal string
 
     useEffect(() => {
         if (project) {
             setDescription(project.description || 'Click to add a description.');
+            setGoal(project.goal || 'Click to add a project goal.');
         }
     }, [project]);
 
     const [showAddMemberModal, setShowAddMemberModal] = useState(false);
-
     const [newMember, setNewMember] = useState({ identifier: '', role: 'Member' });
 
     // Editable fields state
@@ -30,10 +30,8 @@ const ProjectOverview = ({ project, onUpdateProject }) => {
         endDate: project.endDate ? project.endDate.slice(0, 10) : '',
     });
 
-    // When project prop changes, reset edit state
     useEffect(() => {
         setEditValues({
-            goal: project.goal || '',
             priority: project.priority || 'Medium',
             status: project.status || 'NotStarted',
             startDate: project.startDate ? project.startDate.slice(0, 10) : '',
