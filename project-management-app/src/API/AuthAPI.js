@@ -76,6 +76,30 @@ export const getUserId = async () => {
   }
 };
 
+export const getUsername = async () => {
+  var result = isTokenValid();
+  if (result === null) return;
+  if (result.isValid){
+    return result.username;
+  }
+};
+
+export const getEmail = async () => {
+  var result = isTokenValid();
+  if (result === null) return;
+  if (result.isValid){
+    return result.email;
+  }
+};
+
+export const getRole = async () => {
+  var result = isTokenValid();
+  if (result === null) return;
+  if (result.isValid){
+    return result.role;
+  }
+};
+
 export const isTokenValid = () => {
   // Return null if tokens are not saved in localStorage
   var tokens = JSON.parse(localStorage.getItem("tokens"));
@@ -90,9 +114,21 @@ export const isTokenValid = () => {
     claims[
       "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
     ];
+  var username =
+    claims[
+      "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
+    ];
+  var email =
+    claims[
+      "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
+    ];
+  var role =
+    claims[
+      "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role"
+    ];
   var isValid = claims.exp > Date.now() / 1000;
 
-  return { isValid, accessToken, refreshToken, userId };
+  return { isValid, accessToken, refreshToken, userId, username, email, role };
 }
 
 export const refreshTokens = async (userId, refreshToken) =>  {

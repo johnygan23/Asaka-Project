@@ -11,7 +11,7 @@ import { inboxMessages } from '../data/inbox';
 const Sidebar = ({ onLogout, projects = [] }) => {
     const [projectsOpen, setProjectsOpen] = useState(false);
     const unreadCount = inboxMessages.filter(m => !m.isRead).length;
-    
+
     // Function to get NavLink classes with active state
     const getLinkClasses = ({ isActive }) => {
         return `flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-colors duration-200 ${isActive
@@ -51,9 +51,8 @@ const Sidebar = ({ onLogout, projects = [] }) => {
                         <div>
                             <button
                                 onClick={() => setProjectsOpen(!projectsOpen)}
-                                className={`flex items-center justify-between w-full px-3 py-2.5 rounded-lg font-medium transition-colors duration-200 ${
-                                    projectsOpen ? 'bg-cyan-50 text-cyan-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                                }`}
+                                className={`flex items-center justify-between w-full px-3 py-2.5 rounded-lg font-medium transition-colors duration-200 ${projectsOpen ? 'bg-cyan-50 text-cyan-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                    }`}
                             >
                                 <div className="flex items-center gap-3">
                                     <img src={ProjectsIcon} alt="Projects" className="w-5 h-5 flex-shrink-0" />

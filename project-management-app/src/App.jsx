@@ -9,40 +9,68 @@ import ProjectDetails from './pages/ProjectDetails';
 import Inbox from './pages/Inbox';
 import Team from './pages/Team';
 import './App.css';
-import { loginAsync, signupAsync,isTokenValid, refreshTokens } from './API/AuthAPI';
+import { loginAsync, signupAsync, isTokenValid, refreshTokens, getUserId } from './API/AuthAPI';
 import * as ProjectAPI from './API/ProjectAPI';
 import { getAllUsers } from './API/UserAPI';
+import * as ProjectTaskAPI from './API/ProjectTaskAPI';
+import CreateProjectModal from './components/CreateProjectModal';
 
 function App() {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [projects, setProjects] = useState([]);
-  const [users, setUsers] = useState([]);
+  const [projectTasks, setProjectTasks] = useState([]);
+  const [users, setUsers] = useState([]); // Store the logged in user's info like id, name, email, and role
+  const [userInfo, setUserInfo] = useState({});
   const [loadingProjects, setLoadingProjects] = useState(true);
+  // State to control the global Create Project modal
+  const [showCreateProjectModal, setShowCreateProjectModal] = useState(false);
 
   useEffect(() => {
-    async function runApp () {
+    async function runApp() {
       // When the app loads, check if token is valid
       var result = isTokenValid();
       // No 'tokens' key found in localStorage
       if (result === null) return;
-      if(!result.isValid) {
-        try{
+      if (!result.isValid) {
+        try {
           await refreshTokens(result.userId, result.refreshToken);
           console.log("Successfully refreshed token.");
-        } catch (e){
+        } catch (e) {
           setIsAuthenticated(false);
           console.log("Error in refreshing tokens.", e);
           return;
         }
       }
-      setIsAuthenticated(true);
       // If valid, begin fetching data
-      await fetchProjects();
-      await fetchUsers();
+      await fetchDataAndSetUp();
     }
     runApp();
   }, [])
+
+  // Global listener for opening the Create Project modal from anywhere
+  useEffect(() => {
+    const openCreateProjectModal = () => setShowCreateProjectModal(true);
+    window.addEventListener('openCreateProject', openCreateProjectModal);
+    return () => {
+      window.removeEventListener('openCreateProject', openCreateProjectModal);
+    };
+  }, []);
+
+  const fetchDataAndSetUp = async () => {
+    var result = isTokenValid();
+    if (!result.isValid) return null;
+    setUserInfo({
+      userId: result.userId,
+      username: result.username,
+      email: result.email,
+      role: result.role,
+    });
+    setIsAuthenticated(true);
+    await fetchProjects();
+    await fetchUsers();
+    await fetchProjectTasks();
+  }
 
   const fetchUsers = async () => {
     try {
@@ -51,23 +79,33 @@ function App() {
       console.log("Retrieved users: ", data);
       setUsers(Array.isArray(data) ? data : (data.users || []));
     } catch (error) {
-      
       setUsers([]);
     }
   }
 
-    const fetchProjects = async () => {
+  const fetchProjects = async () => {
     setLoadingProjects(true);
     try {
-      const response = await ProjectAPI.getAllProjects();
+      const response = await ProjectAPI.getAllProjectsByUserId();
       const data = response.data;
-      console.log("Retrieved projects: ", data);
+      console.log("Retrieved assigned projects: ", data);
       setProjects(Array.isArray(data) ? data : (data.projects || []));
     } catch (error) {
-      console.error('Error fetching projects:', error);
+      console.error('Error fetching assigned projects:', error);
       setProjects([]);
     } finally {
       setLoadingProjects(false);
+    }
+  };
+
+  const fetchProjectTasks = async () => {
+    try {
+      const response = await ProjectTaskAPI.getAllTasksByUserId();
+      const data = response.data;
+      console.log("Retrieved assigned project tasks: ", data);
+      setProjectTasks(Array.isArray(data) ? data : (data.projectTasks || []));
+    } catch (error) {
+      console.error('Error fetching assigned project tasks:', error);
     }
   };
 
@@ -75,27 +113,21 @@ function App() {
     try {
       const response = await loginAsync({ ...formData });
       localStorage.setItem("tokens", JSON.stringify(response.data));
-      setIsAuthenticated(true);
       console.log("Successful login:", response.data);
-
-      await fetchProjects();
-      await fetchUsers();
-
+      await fetchDataAndSetUp();
     } catch (error) {
       // Do something here like show a login fail message to user
       console.error("Error logging user in: ", error);
-      throw error;
-    }
-  }
-  
+    }
+  }
+
   const handleSignup = async ({ username, email, password, role }) => {
     try {
       const response = await signupAsync({ username, email, password, role });
       // Redirect user to login page after successful signup
       navigate('/login');
-    } catch (error){
+    } catch (error) {
       console.error("Error registering user: ", error);
-      throw error;
     }
   }
 
@@ -108,6 +140,18 @@ function App() {
     setProjects(
       projects.map((p) => (p.id === projectId ? { ...p, ...updates } : p))
     );
+  };
+
+  // Handle creation of a new project from the modal
+  const handleProjectCreate = async (projectData) => {
+    try {
+      const created = await ProjectAPI.addProject(projectData);
+      // Ensure projects list is updated immediately in state
+      setProjects((prev) => [...prev, created]);
+    } catch (error) {
+      console.error('Error creating project:', error);
+    }
+    setShowCreateProjectModal(false);
   };
 
   // Protected Route Wrapper Component
@@ -136,7 +180,7 @@ function App() {
           path="/home"
           element={
             <ProtectedRoute>
-              <Home onLogout={handleLogout} projects={projects} />
+              <Home onLogout={handleLogout} projects={projects} projectTasks={projectTasks} userInfo={userInfo} />
             </ProtectedRoute>
           }
         />
@@ -187,8 +231,15 @@ function App() {
           element={<Navigate to={isAuthenticated ? "/home" : "/login"} replace />}
         />
       </Routes>
+      {/* Global Create Project Modal */}
+      {showCreateProjectModal && (
+        <CreateProjectModal
+          onClose={() => setShowCreateProjectModal(false)}
+          onCreate={handleProjectCreate}
+          projectsCount={projects.length}
+        />
+      )}
     </div>
   );
 }
-
 export default App;

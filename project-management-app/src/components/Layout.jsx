@@ -21,7 +21,7 @@ const Layout = ({ children, onLogout, projects = [], showSidebar: externalShowSi
         <div className="min-h-screen bg-gray-50 flex flex-col">
             {/* Fixed Header */}
             <div className="fixed top-0 left-0 right-0 w-full z-40" style={{ height: HEADER_HEIGHT }}>
-                <Header onToggleSidebar={toggleSidebar} />
+                <Header onToggleSidebar={toggleSidebar} onLogout={onLogout} />
             </div>
             <div className="flex-1 flex relative" style={{ paddingTop: HEADER_HEIGHT }}>
                 {/* Fixed Sidebar, height fills below header only */}

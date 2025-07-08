@@ -1,30 +1,46 @@
 // src/components/Header.jsx
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import AsanaLogo from "../assets/asana-logo.svg";
 import ProjectsIcon from "../assets/folders-svgrepo-com.svg";
 import TasksIcon from "../assets/to-do-svgrepo-com.svg";
 import TeamIcon from "../assets/team-svgrepo-com.svg";
 import MessageIcon from "../assets/message-square-svgrepo-com.svg";
 import InviteIcon from "../assets/add-user-svgrepo-com.svg";
+import UserProfileIcon from "../assets/profile-circle-svgrepo-com.svg";
+import LogoutIcon from "../assets/logout-svgrepo-com.svg";
 
-import { authenticatedOnlyAsync } from "../API/AuthAPI.js";
+import { authenticatedOnlyAsync, isTokenValid } from "../API/AuthAPI.js";
 
-const Header = ({ onToggleSidebar }) => {
+const Header = ({ onToggleSidebar, onLogout }) => {
   const [showCreateDropdown, setShowCreateDropdown] = useState(false);
-  const dropdownRef = useRef(null);
-  const navigate = useNavigate();
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const createDropdownRef = useRef(null);
+  const profileDropdownRef = useRef(null);
 
   const handleLogoClick = async () => {
     var message = await authenticatedOnlyAsync();
     console.log(message);
   };
 
-  // Close dropdown when clicking outside
+  // Fetch user info from token once on mount
+  useEffect(() => {
+    const result = isTokenValid();
+    if (result && result.isValid) {
+      setUsername(result.username || "");
+      setEmail(result.email || "");
+    }
+  }, []);
+
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      if (createDropdownRef.current && !createDropdownRef.current.contains(event.target)) {
         setShowCreateDropdown(false);
+      }
+      if (profileDropdownRef.current && !profileDropdownRef.current.contains(event.target)) {
+        setShowProfileDropdown(false);
       }
     };
 
@@ -36,7 +52,7 @@ const Header = ({ onToggleSidebar }) => {
 
   const handleCreateProject = () => {
     setShowCreateDropdown(false);
-    navigate("/projects");
+    // Dispatch an event that pages/components can listen for to show the Create Project modal
     window.dispatchEvent(new CustomEvent("openCreateProject"));
   };
 
@@ -73,7 +89,7 @@ const Header = ({ onToggleSidebar }) => {
         </button>
 
         {/* Create Button with Dropdown */}
-        <div className="relative" ref={dropdownRef}>
+        <div className="relative" ref={createDropdownRef}>
           <button
             onClick={() => setShowCreateDropdown(!showCreateDropdown)}
             className="bg-white hover:bg-gray-100 text-gray-700 px-2 py-1.5 rounded-full flex items-center gap-3 transition-colors duration-200 font-medium text-sm border border-gray-200"
@@ -192,10 +208,59 @@ const Header = ({ onToggleSidebar }) => {
       </div>
 
       {/* Right Section - User Profile */}
-      <div className="flex items-center">
-        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
-          JZ
-        </div>
+      <div className="flex items-center relative" ref={profileDropdownRef}>
+        <button onClick={() => setShowProfileDropdown(!showProfileDropdown)} className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+          {username ? username.charAt(0).toUpperCase() : "?"}
+        </button>
+
+        {showProfileDropdown && (
+          <div className="absolute top-full right-0 mt-2 w-72 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+            <div className="px-4 py-3 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-lg">
+                  {username ? username.charAt(0).toUpperCase() : "?"}
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-800">{username || "User"}</p>
+                  <p className="text-sm text-gray-500">{email}</p>
+                </div>
+              </div>
+            </div>
+            <div className="py-2">
+              <button
+                onClick={() => {
+                  // navigate to profile page
+                  setShowProfileDropdown(false);
+                }}
+                className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-3"
+              >
+                <img
+                  src={UserProfileIcon}
+                  alt="Profile"
+                  className="w-5 h-5 flex-shrink-0"
+                />
+                <span className="text-gray-700">Profile</span>
+              </button>
+            </div>
+            <div className="border-t border-gray-200 my-0"></div>
+            <div className="py-2">
+              <button
+                onClick={() => {
+                  onLogout();
+                  setShowProfileDropdown(false);
+                }}
+                className="w-full text-left px-4 py-2 hover:bg-gray-50 flex items-center gap-3"
+              >
+                <img
+                  src={LogoutIcon}
+                  alt="Logout"
+                  className="w-5 h-5 flex-shrink-0"
+                />
+                <span className="text-gray-700">Log out</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </header>
   );
